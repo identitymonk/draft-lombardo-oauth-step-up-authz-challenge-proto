@@ -1,0 +1,277 @@
+
+
+
+
+Web Authorization Protocol                                J. ". Lombardo
+Internet-Draft                                                       AWS
+Intended status: Informational                                A. Babeanu
+Expires: 18 October 2025                                        IndyKite
+                                                           16 April 2025
+
+
+           OAuth 2.0 step-up authorization challenge protocol
+      draft-lombardo-oauth-step-up-authz-challenge-protocol-latest
+
+Abstract
+
+   It is not uncommon for resource servers to require additional
+   information like details of delegation authorization, or assurance
+   proof of the delegation of authorization mechanism used according to
+   the characteristics of a request.  This document introduces a
+   mechanism that resource servers can use to signal to a client that
+   the data and metadata associated with the access token of the current
+   request does not meet its authorization requirements and, further,
+   how to meet them.  This document also codifies a taxonomy to guide
+   the client into starting a new request towards the authorization
+   server in order to get issued, if applicable, a new set of tokens
+   matching the requirements.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-
+   challenge/draft-lombardo-oauth-step-up-authz-challenge.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-lombardo-oauth-step-up-authz-
+   challenge-protocol/.
+
+   Discussion of this document takes place on the Web Authorization
+   Protocol mailing list (mailto:oauth@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/oauth/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/oauth/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-
+   challenge.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 18 October 2025.
+
+Copyright Notice
+
+   Copyright (c) 2025 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Protocol Overview
+   4.  Security Considerations
+   5.  IANA Considerations
+   6.  References
+     6.1.  Normative References
+     6.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   In simple API authorization scenarios, an authorization server will
+   determine what claims to embed in the tokkens to issue on the basis
+   of aspects such as the scopes requested, the resource, the identity
+   of the client, and other characteristics known a provisioning time.
+   Although that approach is viable in many situations, it falls short
+   in several important circumstances.  Consider, for instance, a FAPI
+   2.0 or SMART on FHIR regulated API requiring peculiar client
+   authentication mechanism to be enforced or transaction specific
+   details to be present in the token depending on whether the resource
+   being accessed need to meet some rules estimated by the API itself,
+   or a policy decision point it relies on, using a logic that is opaque
+   to the authorization server.
+
+   This document extends the collection of error codes defined by
+   [RFC6750] and by [RFC9470] with a new error codes,
+   insufficient_delegated_authorization and new_authorization_needed,
+   which can be used by resource servers to signal to clients that the
+   authorization delegation represented by the access token presented
+   with the request does not meet the authorization requirements of the
+   resource server.  This document also introduces associated payload
+   definitions.  The resource server can use these payloads to
+   explicitly communicate to the client the required authorization
+   details required.
+
+   The client can use that information to reach back to the
+   authorization server with through a new authorization request that
+   specifies the additional authorization details required to be
+   described in the tokens to be issued.  This document does not
+   describe new methods to perform the new authorization request but
+   will rely on OAuth 2.0 Rich Auhtorization Request [RFC9396], OAuth
+   2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured
+   Authorization Request [RFC9101].
+
+   Those extensions will make it possible to implement interoperable
+   step up authorization with minimal work from resource servers,
+   clients, and authorization servers.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   This specification uses the terms "access token", "authorization
+   server", "authorization endpoint", "authorization request", "client",
+   "protected resource", and "resource server" defined by [RFC6749].
+
+3.  Protocol Overview
+
+   The following is an end-to-end sequence of a typical step up
+   authorization scenario implemented according to this specification.
+   The scenario assumes that, before the sequence described below takes
+   place, the client already obtained an access token for the protected
+   resource.
+
+  +----------+                                          +--------------+
+  |          |                                          |              |
+  |          |-----------(1) request ------------------>|              |
+  |          |                                          |              |
+  |          |<---------(2) challenge ------------------|   Resource   |
+  |          |                                          |    Server    |
+  |  Client  |                                          |              |
+  |          |-----------(5) request ------------------>|              |
+  |          |                                          |              |
+  |          |<-----(6) protected resource -------------|              |
+  |          |                                          +--------------+
+  |          |
+  |          |
+  |          |  +-------+                              +---------------+
+  |          |->|       |                              |               |
+  |          |  |       |--(3) authorization request-->|               |
+  |          |  | User  |                              |               |
+  |          |  | Agent |<-----------[...]------------>| Authorization |
+  |          |  |       |                              |     Server    |
+  |          |<-|       |                              |               |
+  |          |  +-------+                              |               |
+  |          |                                         |               |
+  |          |<-------- (4) access token --------------|               |
+  |          |                                         |               |
+  +----------+                                         +---------------+
+
+   _Figure 1: Abstract Protocol Flow_
+
+   1.  The client requests a protected resource, presenting an access
+       token.
+
+   2.  The resource server determines that the circumstances in which
+       the presented access token was obtained offer insufficient
+       authorization details, wrong grant flow, or inadequate client
+       authentication mechanism; hence, it denies the request and
+       returns a challenge describing (using a combination of error code
+       and payload details) what authorization details requirements must
+       be met for the resource server to allow a request.
+
+   3.  The client directs the user agent to the authorization server
+       with an authorization request that includes the authorization
+       details indicated by the resource server in the previous step.
+
+   4.  Whatever sequence required by the grant of choice plays out; this
+       will include the necessary steps to authenticate the client in
+       accordance with the playoad, to use the required grant flow type,
+       or to validate that the authorization details are met.  Then, the
+       authorization server returns a new access token to the client.
+       The new access token contains or references information about the
+       elements required, including but not limited to what
+       [I-D.lombardo-oauth-client-extension-claims] defines.
+
+   5.  The client repeats the request from step 1, presenting the newly
+       obtained access token.
+
+   6.  The resource server finds that the authorization details, grant
+       flow, or client authentication mechanism used during the
+       acquisition of the new access token complies with its
+       requirements and returns the representation of the requested
+       protected resource.
+
+4.  Security Considerations
+
+   TODO Security
+
+5.  IANA Considerations
+
+   This document has no IANA actions.
+
+6.  References
+
+6.1.  Normative References
+
+   [I-D.lombardo-oauth-client-extension-claims]
+              Lombardo, J. and A. Babeanu, "OAuth 2.0 client extension
+              claims", Work in Progress, Internet-Draft, draft-lombardo-
+              oauth-client-extension-claims-00, 11 April 2025,
+              <https://datatracker.ietf.org/doc/html/draft-lombardo-
+              oauth-client-extension-claims-00>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC6749]  Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
+              RFC 6749, DOI 10.17487/RFC6749, October 2012,
+              <https://www.rfc-editor.org/rfc/rfc6749>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+6.2.  Informative References
+
+   [RFC9101]  Sakimura, N., Bradley, J., and M. Jones, "The OAuth 2.0
+              Authorization Framework: JWT-Secured Authorization Request
+              (JAR)", RFC 9101, DOI 10.17487/RFC9101, August 2021,
+              <https://www.rfc-editor.org/rfc/rfc9101>.
+
+   [RFC9126]  Lodderstedt, T., Campbell, B., Sakimura, N., Tonge, D.,
+              and F. Skokan, "OAuth 2.0 Pushed Authorization Requests",
+              RFC 9126, DOI 10.17487/RFC9126, September 2021,
+              <https://www.rfc-editor.org/rfc/rfc9126>.
+
+   [RFC9396]  Lodderstedt, T., Richer, J., and B. Campbell, "OAuth 2.0
+              Rich Authorization Requests", RFC 9396,
+              DOI 10.17487/RFC9396, May 2023,
+              <https://www.rfc-editor.org/rfc/rfc9396>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Jean-François "Jeff" Lombardo
+   AWS
+   Canada
+   Email: jeffsec@amazon.com
+
+
+   Alexandre Babeanu
+   IndyKite
+   Canada
+   Email: alex.babeanu@indykite.com

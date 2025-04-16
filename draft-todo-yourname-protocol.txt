@@ -2,48 +2,34 @@
 
 
 
-Web Authorization Protocol                                   J. Lombardo
-Internet-Draft                                                       AWS
-Intended status: Informational                                A. Babeanu
-Expires: 14 September 2025                                     IndieKite
-                                                           13 March 2025
+WG Working Group                                              Y. N. Here
+Internet-Draft                                    Your Organization Here
+Intended status: Informational                             16 April 2025
+Expires: 18 October 2025
 
 
-                 OAuth2 Step-Up Authorization Challenge
-      draft-lombardo-oauth-step-up-authz-challenge-protocol-latest
+                           TODO - Your title
+                  draft-todo-yourname-protocol-latest
 
 Abstract
 
-   It is not uncommon for resource servers to require more details
-   information the characteristics of a request.  This document
-   introduces a mechanism that resource servers can use to signal to a
-   client that the details about the Subject, Action, Resource, and
-   Context do not meet its authorization requirements and, further, how
-   to meet them.  This document also codifies a mechanism for guiding a
-   client into shaping a rich or pushed authorization request towards
-   the authorization server in order to acquire, if authorized, a new
-   set of tokens that could match the expectations of the resource
-   provider.
+   TODO Abstract
 
 About This Document
 
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://identitymonk.github.io/draft-ietf-oauth-step-up-authz-
-   challenge/draft-ietf-oauth-step-up-authz-challenge-protocol.html.
-   Status information for this document may be found at
-   https://datatracker.ietf.org/doc/draft-lombardo-oauth-step-up-authz-
-   challenge-protocol/.
+   https://example.com/LATEST.  Status information for this document may
+   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
+   protocol/.
 
-   Discussion of this document takes place on the Web Authorization
-   Protocol mailing list (mailto:oauth@ietf.org), which is archived at
-   https://mailarchive.ietf.org/arch/browse/oauth/.  Subscribe at
-   https://www.ietf.org/mailman/listinfo/oauth/.
+   Discussion of this document takes place on the WG Working Group
+   mailing list (mailto:WG@example.com), which is archived at
+   https://example.com/WG.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/identitymonk/draft-ietf-oauth-step-up-authz-
-   challenge.
+   https://github.com/USER/REPO.
 
 Status of This Memo
 
@@ -60,7 +46,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 September 2025.
+   This Internet-Draft will expire on 18 October 2025.
 
 Copyright Notice
 
@@ -84,7 +70,7 @@ Table of Contents
    4.  IANA Considerations
    5.  Normative References
    Acknowledgments
-   Authors' Addresses
+   Author's Address
 
 1.  Introduction
 
@@ -113,34 +99,16 @@ Table of Contents
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/rfc/rfc2119>.
 
-   [RFC6749]  Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
-              RFC 6749, DOI 10.17487/RFC6749, October 2012,
-              <https://www.rfc-editor.org/rfc/rfc6749>.
-
-   [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
-              (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
-              <https://www.rfc-editor.org/rfc/rfc7519>.
-
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
-
-   [RFC9470]  Bertocci, V. and B. Campbell, "OAuth 2.0 Step Up
-              Authentication Challenge Protocol", RFC 9470,
-              DOI 10.17487/RFC9470, September 2023,
-              <https://www.rfc-editor.org/rfc/rfc9470>.
 
 Acknowledgments
 
    TODO acknowledge.
 
-Authors' Addresses
+Author's Address
 
-   Jeff Lombardo
-   AWS
-   Email: jeff@authnopuz.xyz
-
-
-   Alex Babeanu
-   IndieKite
-   Email: alex.babeanu@indykite.com
+   Your Name Here
+   Your Organization Here
+   Email: your.email@example.com

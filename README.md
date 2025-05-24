@@ -1,6 +1,6 @@
-# OAuth 2.0 client extension claims
+# OAuth 2.0 Step-Up Authorization Challenge Protocol
 
-This is the working area for the individual Internet-Draft, "OAuth 2.0 client extension claims".
+This is the working area for the individual Internet-Draft, "OAuth 2.0 Step-Up Authorization Challenge ProtocolOAuth 2.0 client extension claims".
 
 * [Editor's Copy](https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge/#go.draft-lombardo-oauth-step-up-authz-challenge.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-lombardo-oauth-step-up-authz-challenge)

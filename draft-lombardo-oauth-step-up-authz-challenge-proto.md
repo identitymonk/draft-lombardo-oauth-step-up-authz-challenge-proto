@@ -1,9 +1,9 @@
 ---
-title: "OAuth 2.0 step-up authorization challenge protocol"
+title: "OAuth 2.0 step-up authorization challenge proto"
 abbrev: "STEPZ"
 category: info
 
-docname: draft-lombardo-oauth-step-up-authz-challenge-protocol-latest
+docname: draft-lombardo-oauth-step-up-authz-challenge-proto-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
@@ -20,7 +20,7 @@ venue:
   mail: "oauth@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/oauth/"
   github: "identitymonk/draft-lombardo-oauth-step-up-authz-challenge"
-  latest: "https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge/draft-lombardo-oauth-step-up-authz-challenge.html"
+  latest: "https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge/draft-lombardo-oauth-step-up-authz-challenge-proto.html"
 
 author:
  -

@@ -1,6 +1,6 @@
 ---
 title: "OAuth 2.0 step-up authorization challenge protocol"
-abbrev: "TODO - Abbreviation"
+abbrev: "STEPZ"
 category: info
 
 docname: draft-lombardo-oauth-step-up-authz-challenge-protocol-latest
@@ -61,9 +61,12 @@ normative:
   RFC9101: # JWT-Secured Authorization Request
 
 informative:
+  RFC7662: # Introspection
   RFC9470: # OAuth 2.0 Step Up Authentication Challenge Protocol
   RFC9728: # OAuth 2.0 Protected Resource Metadata
-  I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims   
+  RFC8414: # OAuth2 Authorization Server Metadata
+  RFC9449: # DPoP
+  I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
   XACML:
     title: eXtensible Access Control Markup Language (XACML) Version 1.1
     target: https://www.oasis-open.org/committees/xacml/repository/cs-xacml-specification-1.1.pdf
@@ -226,11 +229,11 @@ WWW-Authenticate: Bearer error="insufficient_user_authorization", error_descript
 
 {
   "decision": false,
-  "context": { 
+  "context": {
     "error_msg": "The user must belongs to a project to access the resource",
     "details": {
       "expected_values": {
-        "project" : ["phoenix", "eagle"] 
+        "project" : ["phoenix", "eagle"]
       }
     }
   }
@@ -258,7 +261,7 @@ reference:
 : _OPTIONAL_ - an absolute URI that references the set of parameters comprising an OAuth 2.0 authorization request in a form of a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101]
 
 # Auhtorization Request
-A client receiving a challenge as defined in section TODO of this specification from the resource MUST take the action appropriate to each use case.
+A client receiving a challenge as defined in section 4 of this specification from the resource MUST take the action appropriate to each use case.
 
 ### Case Of `insufficient_delegated_authorization` Error
 
@@ -308,7 +311,7 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 - Push Authorization Request [RFC9126], and
 - JWT-Secured Authorization Request [RFC9101].
 
-This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section TODO. Still, such payload might unintentionally disclose information about the subject, the resource, the action to be performed, as long as context-specific data such as but not limited to authorization details  that an attacker might use to gain knowledge about their target. Implementers should use care in determining what to disclose in the challenge and in what circumstances.
+This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4. Still, such payload might unintentionally disclose information about the subject, the resource, the action to be performed, as long as context-specific data such as but not limited to authorization details  that an attacker might use to gain knowledge about their target. Implementers should use care in determining what to disclose in the challenge and in what circumstances.
 
 For this specification, the resource provider MUST examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.
 
@@ -320,7 +323,7 @@ This document has no IANA actions.
 
 --- back
 
-#U Use Cases
+# Use Cases
 
 ## LLM Agent accessing a service via an LLM Tool on behalf of a user
 
@@ -366,14 +369,14 @@ _Figure 2: Abstract AI Agent Use Case Flow_
 * The LLM Agent is in possession of an Identity Token, an Access Token, and a Refresh Token issued by the Enterprise IdP (`idp.example.com`)
 * We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool
 
-### LLM Agent receives a response fromn the LLM (2)
+### LLM Agent receives a response fromn the LLM
 
 LLM Agent receives a directive to use the LLM Tool with a specific payload and it calls the external LLM Tool provided by an Enterprise internal IT with a valid access token.
 
 ```http
 POST /Pay
 Host: tool.example.com
-Authorization: Bearer <Access Token issued by idp.example.com in base64>
+Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
 
 to=DE02100100109307118603&
 amount=123.50
@@ -389,7 +392,7 @@ WWW-Authenticate: Bearer error="new_authorization_needed", error_description="A 
 
 {
   "decision": false,
-  "context": { 
+  "context": {
     "error_msg": "The user must be authorized to initiate payment for Merchant A ",
     "details": {
       "method": "urn:ietf:params:oauth:grant-ext:rar",

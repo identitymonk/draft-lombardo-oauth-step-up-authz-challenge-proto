@@ -1,7 +1,7 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-22T01:37:29.903356+00:00",
-  "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge",
+  "timestamp": "2025-05-25T01:44:50.540609+00:00",
+  "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
       "name": "bug",
@@ -50,5 +50,34 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOOIDCrM6XelOZ",
+      "title": "Draft 00",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/1",
+      "state": "MERGED",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Inital push to declare the base of the proposal",
+      "createdAt": "2025-05-24T04:45:53Z",
+      "updatedAt": "2025-05-24T04:46:32Z",
+      "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "baseRefName": "main",
+      "baseRefOid": "d2edb746d099ac8b11f519825f25338957dead6d",
+      "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "headRefName": "Draft-00",
+      "headRefOid": "1ce6776cb840d7c5b738e6966ec2d2ad11356cda",
+      "closedAt": "2025-05-24T04:46:32Z",
+      "mergedAt": "2025-05-24T04:46:32Z",
+      "mergedBy": "identitymonk",
+      "mergeCommit": {
+        "oid": "b04b2590c809514dc1f132d56884c3409abfc474"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }

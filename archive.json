@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-25T01:44:50.540609+00:00",
+  "timestamp": "2025-05-27T01:36:53.729364+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -49,7 +49,40 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 2,
+      "id": "I_kwDOOIDCrM64Q37e",
+      "title": "Security considerations",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/2",
+      "state": "OPEN",
+      "author": "gffletch",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "I'd recommend pulling out each point of the security considerations into it's own sub-section. This will make it clearer to the reader.\n\nAlso, the point that the enterprise is \"leaking\" authorization policy into the response to the client is something that I think should be more clearly stated. Or maybe call out that if this is a concern plan to use the \"PAR\" extension. ",
+      "createdAt": "2025-05-26T14:44:08Z",
+      "updatedAt": "2025-05-26T14:44:08Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 3,
+      "id": "I_kwDOOIDCrM64TIoX",
+      "title": "Adding reference to RFC 9470 OAuth 2.0 Step Up Authentication Challenge Protocol",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/3",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Feedback from @aaronpk\n\n> Justify why a new spec and one the 403 and not a 401.\nHere we expect the token to have gone through conventional OAuth2 validation first before a decision is made on the content of the claims, including the authorization_details",
+      "createdAt": "2025-05-26T20:39:21Z",
+      "updatedAt": "2025-05-26T20:39:21Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": [
     {
       "number": 1,

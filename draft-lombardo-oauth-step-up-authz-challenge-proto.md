@@ -172,7 +172,7 @@ _Figure 1: Abstract Protocol Flow_
 
 The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
 
-This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes the methoids by which the resource provider can signal to the client the type(s) of authorization garantees it is expected to obtain from the authorization server for the given request.
+This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes how the resource provider tells the client what type of authorization it needs to get from the authorization server for a request.
 
 The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particuliar authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.
 
@@ -182,7 +182,7 @@ Although the case in which the new access token supersedes old tokens by virtue 
 
 ## HTTP Error Status Code
 
-When a request compliant with this specification does not meet its authorization state requirements, the resource server responds using the `403` HTTP status code with the Bearer authentication scheme's error parameter (from [RFC6750]) .
+The resource server responds with a `403` HTTP status code using the Bearer authentication scheme's error parameter (from [RFC6750]) when a request compliant with this specification does not meet its authorization state requirements.
 
 ## Error Codes
 

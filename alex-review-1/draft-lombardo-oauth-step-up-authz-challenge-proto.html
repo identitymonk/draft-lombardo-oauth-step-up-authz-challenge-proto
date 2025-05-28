@@ -1343,7 +1343,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 </li>
       </ol>
 <p id="section-3-5">The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".<a href="#section-3-5" class="pilcrow">¶</a></p>
-<p id="section-3-6">This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> or is validated via introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span>, <span>[<a href="#XACML" class="cite xref">XACML</a>]</span> or NIST's ABAC <span>[<a href="#SP.800-162" class="cite xref">SP.800-162</a>]</span>. This document rather describes the methoids by which the resource provider can signal to the client the type(s) of authorization garantees it is expected to obtain from the authorization server for the given request.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-6">This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> or is validated via introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span>, <span>[<a href="#XACML" class="cite xref">XACML</a>]</span> or NIST's ABAC <span>[<a href="#SP.800-162" class="cite xref">SP.800-162</a>]</span>. This document rather describes how the resource provider tells the client what type of authorization it needs to get from the authorization server for a request.<a href="#section-3-6" class="pilcrow">¶</a></p>
 <p id="section-3-7">The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particuliar authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.<a href="#section-3-7" class="pilcrow">¶</a></p>
 <p id="section-3-8">Although the case in which the new access token supersedes old tokens by virtue of a higher authorization state is common, in line with the connotation of the term "step up authorization", it is important to keep in mind that this might not necessarily hold true in the general case. For example, for a particular request, a resource server might require a higher authorization state and a shorter validity, resulting in a token suitable for one-off calls but leading to frequent prompts: hence, offering a suboptimal user experience if the token is reused for routine operations. In such a scenario, the client would be better served by keeping both the old tokens, which are associated with a lower authorization state, and the new one: selecting the appropriate token for each API call. This is not a new requirement for clients, as incremental consent and least-privilege principles will require similar algorithms for managing access tokens associated with different scopes and permission levels. This document does not recommend any specific token-caching strategy: that choice will be dependent on the characteristics of every particular scenario and remains application-dependent as in the core OAuth cases. Furthermore, OAuth 2.0 <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> assumes access tokens are treated as opaque by clients. The token format might thus be unreadable to the client or might change at any time to become unreadable. So, during the course of any token-caching strategy, a client must not attempt to inspect the content of the access token to determine the associated authentication information or other details (see Section 6 of <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> for a more detailed discussion).<a href="#section-3-8" class="pilcrow">¶</a></p>
 </section>
@@ -1358,7 +1358,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-http-error-status-code">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-http-error-status-code" class="section-name selfRef">HTTP Error Status Code</a>
         </h3>
-<p id="section-4.1-1">When a request compliant with this specification does not meet its authorization state requirements, the resource server responds using the <code>403</code> HTTP status code with the Bearer authentication scheme's error parameter (from <span>[<a href="#RFC6750" class="cite xref">RFC6750</a>]</span>) .<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">The resource server responds with a <code>403</code> HTTP status code using the Bearer authentication scheme's error parameter (from <span>[<a href="#RFC6750" class="cite xref">RFC6750</a>]</span>) when a request compliant with this specification does not meet its authorization state requirements.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="error-codes">
@@ -1404,7 +1404,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-insufficient_delegated_auth">
 <a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-insufficient_delegated_auth" class="section-name selfRef"><code>insufficient_delegated_authorization</code> Error</a>
           </h4>
-<p id="section-4.3.2-1">If the error code <code>insufficient_delegated_authorization</code> is used, then the HTTP <code>&lt;payload&gt;</code> <span class="bcp14">MUST</span> be formatted as an AuthZEN <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> response for a <code>decision</code> that is set to <code>false</code> and <span class="bcp14">MUST</span> include as part of the response a <code>context</code> object:<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-1">If the error code <code>insufficient_delegated_authorization</code> is used, then the HTTP body payload <span class="bcp14">MUST</span> be formatted as an AuthZEN <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> response for a <code>decision</code> that is set to <code>false</code> and <span class="bcp14">MUST</span> include as part of the response a <code>context</code> object. The <code>context</code> object should then include the following properties:<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.3.2-2">
             <dt id="section-4.3.2-2.1">error_msg:</dt>
             <dd style="margin-left: 1.5em" id="section-4.3.2-2.2">
@@ -1421,12 +1421,12 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-4.3.2-4">
             <dt id="section-4.3.2-4.1">expected_claims:</dt>
             <dd style="margin-left: 1.5em" id="section-4.3.2-4.2">
-              <p id="section-4.3.2-4.2.1"><em><span class="bcp14">OPTIONAL</span></em> - a list of space-delimited, case-sensitive strings representing the claim names that must to be provided in the access token.<a href="#section-4.3.2-4.2.1" class="pilcrow">¶</a></p>
+              <p id="section-4.3.2-4.2.1"><em><span class="bcp14">OPTIONAL</span></em> - a list of space-delimited, case-sensitive strings representing the claim names that <span class="bcp14">MUST</span> be provided in the access token.<a href="#section-4.3.2-4.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-4.3.2-4.3">expected_values:</dt>
             <dd style="margin-left: 1.5em" id="section-4.3.2-4.4">
-              <p id="section-4.3.2-4.4.1"><em><span class="bcp14">OPTIONAL</span></em> - a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure that will indicate the claim names that must to be provided as JSON keys and the values, expressed as a JSON array of values.<a href="#section-4.3.2-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-4.3.2-4.4.1"><em><span class="bcp14">OPTIONAL</span></em> - a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure that will indicate the claim names that <span class="bcp14">MUST</span> be provided as JSON keys and the values, expressed as a JSON array of values.<a href="#section-4.3.2-4.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-4.3.2-4.5">pdp_message:</dt>
@@ -1482,7 +1482,7 @@ WWW-Authenticate: Bearer error="insufficient_user_authorization", error_descript
           <h4 id="name-requested_authorization-err">
 <a href="#section-4.3.3" class="section-number selfRef">4.3.3. </a><a href="#name-requested_authorization-err" class="section-name selfRef"><code>requested_authorization</code> Error</a>
           </h4>
-<p id="section-4.3.3-1">If the error code <code>requested_authorization</code> is used, the HTTP payload <span class="bcp14">MUST</span> be a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure wich will include:<a href="#section-4.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-1">If the error code <code>requested_authorization</code> is used, the HTTP payload <span class="bcp14">MUST</span> be a valid [AuthZEN] compliant JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure wich will include:<a href="#section-4.3.3-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.3.3-2">
             <dt id="section-4.3.3-2.1">method:</dt>
             <dd style="margin-left: 1.5em" id="section-4.3.3-2.2">
@@ -1852,21 +1852,21 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="Req
 |                   |----------------------&gt;|                    | 13) Call Tool +  TOKEN |                 |
 |   User Agent      |                       |                    |-----------------------&gt;|                 |                                 +-------------+
 |                   |                       |                    |                        |                 |                                 |             |
-|                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
+|                   |                       |                    |   17) HTTP 403         |                 |                                 |             |
 |                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
 |                   |                       |                    |&lt;-----------------------|                 |                                 | Backend API |
-|                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
-|                   |                       |                    |-----------------------&gt;|    MCP Server   |--------------------------------&gt;|             |---&gt; 14') (AuthZEN)
+|                   |                       |                    |   18) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
+|                   |                       |                    |-----------------------&gt;|    MCP Server   |--------------------------------&gt;|             |---&gt; 15) (AuthZEN)
 |                   |                       +--------------------+                        |                 |                                 |             |&lt;---
 |                   |                                                                     |  (Exposed TOOL) |                                 |             |
-|                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
+|                   |                   3) Redirect to External AS                        |                 |       16) HTTP 403              |             |
 |                   |&lt;--------------------------------------------------------------------|                 |&lt;--------------------------------|             |
 |                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
 |                   |--------------------------------------------------------------------&gt;|                 | WWW-Authenticate:               |             |
 |                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
 |                   |&lt;--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
 |                   |                                                                     |                 |                                 |             |
-|                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
+|                   |              19) Redirect to External AS - back to 4)               |                 |                                 +-------------+
 |                   |&lt;------------------------------------------------------------------- |                 |
 |                   |                                                                     |                 |
 |                   |                        +---------------------+                      |                 |
@@ -1925,11 +1925,11 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="Req
 12) The MCP Server responds with the external AS's <code>access_token</code>, which it cached in step 8.
 13) Once ready, the MCP Client can now invoke the right MCP Server Tool, passing the <code>access_token</code> along with the request.
 14) The MCP Server makes a backend call to the underlying API. The API validates the <code>access_token</code> with the same external AS.
-14') The API resource <em>may</em> use an external Policy Decision Point via [AuthZen] to evaluate the request.
-1)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
-2)  The MCP Server relays the API Resource's response back to the MCP CLient.
-3)  The MCP Client initiates a new <code>authorize</code> PAR request with the MCP Server's <code>/authorize</code> endpoint.
-4)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.<a href="#appendix-A.1.2-2" class="pilcrow">¶</a></p>
+15) The API resource <em>may</em> use an external Policy Decision Point via [AuthZen] to evaluate the request.
+16)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
+17)  The MCP Server relays the API Resource's response back to the MCP CLient.
+18)  The MCP Client initiates a new <code>authorize</code> PAR request with the MCP Server's <code>/authorize</code> endpoint.
+19)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.<a href="#appendix-A.1.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="mcp-client-receives-a-response-from-the-llm">

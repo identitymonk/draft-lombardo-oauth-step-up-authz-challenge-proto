@@ -207,7 +207,7 @@ The payload is expected to be a JSON object, the details of which are provided i
 
 ### `insufficient_delegated_authorization` Error
 
-If the error code `insufficient_delegated_authorization` is used, then the HTTP `<payload>` MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that is set to `false` and MUST include as part of the response a `context` object:
+If the error code `insufficient_delegated_authorization` is used, then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that is set to `false` and MUST include as part of the response a `context` object. The `context` object should then include the following properties:
 
 error_msg:
 : _REQUIRED_ - a string representing a human readable justification of the resource provider access control leading to a `deny` of the request.
@@ -218,10 +218,10 @@ details:
 The `details` JSON structure MUST include only one of the following element:
 
 expected_claims:
-:  _OPTIONAL_ - a list of space-delimited, case-sensitive strings representing the claim names that must to be provided in the access token.
+:  _OPTIONAL_ - a list of space-delimited, case-sensitive strings representing the claim names that MUST be provided in the access token.
 
 expected_values:
-:  _OPTIONAL_ - a valid JSON [RFC8259] structure that will indicate the claim names that must to be provided as JSON keys and the values, expressed as a JSON array of values.
+:  _OPTIONAL_ - a valid JSON [RFC8259] structure that will indicate the claim names that MUST be provided as JSON keys and the values, expressed as a JSON array of values.
 
 pdp_message:
 : _OPTIONAL_ - a valid JSON [RFC8259] structure representing the error details the format of the policy decision point (PDP) that is the access authority for the resource provider. If the PDP is [D-OpenID-AuthZEN] compliant, then the `pdp_message` MAY relay the PDP response `context` object.
@@ -275,7 +275,7 @@ The format of the `pdp_message` element is left implementation specific and non-
 
 ### `requested_authorization` Error
 
-If the error code `requested_authorization` is used, the HTTP payload MUST be a valid JSON [RFC8259] structure wich will include:
+If the error code `requested_authorization` is used, the HTTP payload MUST be a valid [AuthZEN] compliant JSON [RFC8259] structure wich will include:
 
 method:
 : _REQUIRED_ - The value of this element MUST be an absolute URI that can be registered with IANA. It SHOULD support present, future or custom values. If IANA registered URIs are used, then their meaning and semantics should be respected and used as defined in the registry. This specification recognizes primarily the values `urn:ietf:params:oauth:grant-ext:rar` defined by the Rich Authorization Request [RFC9396] specification and `urn:ietf:params:oauth:grant-ext:par` defined through the Pushed Authorization Request [RFC9126] specification.
@@ -418,21 +418,21 @@ The following non normative diagram (Figure 2) depicts an example of the functio
     |                   |---------------------->|                    | 13) Call Tool +  TOKEN |                 |
     |   User Agent      |                       |                    |----------------------->|                 |                                 +-------------+
     |                   |                       |                    |                        |                 |                                 |             |
-    |                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
+    |                   |                       |                    |   17) HTTP 403         |                 |                                 |             |
     |                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
     |                   |                       |                    |<-----------------------|                 |                                 | Backend API |
-    |                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
-    |                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 14') (AuthZEN)
+    |                   |                       |                    |   18) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
+    |                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 15) (AuthZEN)
     |                   |                       +--------------------+                        |                 |                                 |             |<---
     |                   |                                                                     |  (Exposed TOOL) |                                 |             |
-    |                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
+    |                   |                   3) Redirect to External AS                        |                 |       16) HTTP 403              |             |
     |                   |<--------------------------------------------------------------------|                 |<--------------------------------|             |
     |                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
     |                   |-------------------------------------------------------------------->|                 | WWW-Authenticate:               |             |
     |                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
     |                   |<--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
     |                   |                                                                     |                 |                                 |             |
-    |                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
+    |                   |              19) Redirect to External AS - back to 4)               |                 |                                 +-------------+
     |                   |<------------------------------------------------------------------- |                 |
     |                   |                                                                     |                 |
     |                   |                        +---------------------+                      |                 |
@@ -473,11 +473,11 @@ The following flow is based on the [MCP] authorization flow described in its sec
 12) The MCP Server responds with the external AS's `access_token`, which it cached in step 8.
 13) Once ready, the MCP Client can now invoke the right MCP Server Tool, passing the `access_token` along with the request.
 14) The MCP Server makes a backend call to the underlying API. The API validates the `access_token` with the same external AS.
-14') The API resource _may_ use an external Policy Decision Point via [AuthZen] to evaluate the request.
-1)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
-2)  The MCP Server relays the API Resource's response back to the MCP CLient.
-3)  The MCP Client initiates a new `authorize` PAR request with the MCP Server's `/authorize` endpoint.
-4)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.
+15) The API resource _may_ use an external Policy Decision Point via [AuthZen] to evaluate the request.
+16)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
+17)  The MCP Server relays the API Resource's response back to the MCP CLient.
+18)  The MCP Client initiates a new `authorize` PAR request with the MCP Server's `/authorize` endpoint.
+19)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.
 
 ### MCP Client receives a response from the LLM
 

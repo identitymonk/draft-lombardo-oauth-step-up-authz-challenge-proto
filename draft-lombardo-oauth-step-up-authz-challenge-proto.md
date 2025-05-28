@@ -203,16 +203,6 @@ Each error code matches different types of HTTP response payloads, which guide t
 ### Response Payloads
 This document specifies that all compliant HTTP responses must contain a payload, and that the contents of this payload depends on the error code issued by the resource server.
 
-For example, a compliant response may be:
-```http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_delegated_authorization",
-error_description="A different authorization level is required"
-
-{
-  <payload>
-}
-```
 The payload is expected to be a JSON object, the details of which are provided in the following sections.
 
 ### `insufficient_delegated_authorization` Error
@@ -255,7 +245,9 @@ error_description="A different authorization level is required"
   }
 }
 ```
+
 The following is a non-normative example of a compliant HTTP response relaying the response of a [D-OpenID-AuthZEN] compliant policy decision point (PDP) to the requesting client:
+
 ```http
 HTTP/1.1 403 Forbidden
 WWW-Authenticate: Bearer error="insufficient_user_authorization",
@@ -280,6 +272,7 @@ error_description="A different authorization level is required"
   }
 }
 ```
+
 The format of the `pdp_message` element is left implementation specific and non-normative; it should be negotiated and agreed upon by the client and resource server. Nevertheless usage of open standards is recommended, for example the usage of [D-OpenID-AuthZEN] payloads wherever possible.
 
 ### `requested_authorization` Error
@@ -313,6 +306,7 @@ error_description="Requires PAR."
 GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
 }
 ```
+
 The following is a non-normative example of a compliant response where the resource server requests pecific authorization details:
 
 ```http
@@ -340,6 +334,7 @@ error_description="Requires RAR."
    ]
 }
 ```
+
 # Setp-Up Auhtorization Request
 A client receiving a step-up Authorization challenge as defined in section 4 of this specification from the resource server MUST take actions appropriate to each use case, as describe in the following sections.
 
@@ -416,44 +411,44 @@ In the present use-case though, a user prompts an agent for some data using natu
 
 The following non normative diagram (Figure 2) depicts an example of the functional interaction between a LLM-powered agent, acting as an MCP client, the MCP Server exposing a Tool of interest to the Agent and the underlying API, the protected resource:
 
-```text
-+-------------------+
-|                   |                       +--------------------+                        +-----------------+
-|                   |        1) Prompt      |                    |      2) /authorize     |                 |
-|                   |---------------------->|                    |----------------------->|                 |
-|                   |                       |                    |  11) /token + MCP-CODE |                 |
-|                   |                       |     MCP Client     |----------------------->|                 |
-|                   |                       |   (LLM-enabled)    |       12) TOKEN        |                 |
-|                   |10) redirect + MCP-CODE|                    |<-----------------------|                 |
-|                   |---------------------->|                    | 13) Call Tool +  TOKEN |                 |
-|   User Agent      |                       |                    |----------------------->|                 |                                 +-------------+
-|                   |                       |                    |                        |                 |                                 |             |
-|                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
-|                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
-|                   |                       |                    |<-----------------------|                 |                                 | Backend API |
-|                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
-|                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 14') (AuthZEN)
-|                   |                       +--------------------+                        |                 |                                 |             |<---
-|                   |                                                                     |  (Exposed TOOL) |                                 |             |
-|                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
-|                   |<--------------------------------------------------------------------|                 |<--------------------------------|             |
-|                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
-|                   |-------------------------------------------------------------------->|                 | WWW-Authenticate:               |             |
-|                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
-|                   |<--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
-|                   |                                                                     |                 |                                 |             |
-|                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
-|                   |<------------------------------------------------------------------- |                 |
-|                   |                                                                     |                 |
-|                   |                        +---------------------+                      |                 |
-|                   |    4) /authorize       |                     | 7) /token + AS-CODE  |                 |
-|                   |----------------------> |    External AS      <----------------------|                 |
-|                   |                        |      (IdP)          |                      |                 |
-|                   | 5) redirect + AS-CODE  |                     |      8) TOKEN        |                 |
-|                   |<---------------------- |                     ---------------------->|                 |
-|                   |                        |                     |                      |                 |
-+-------------------+                        +---------------------+                      +-----------------+
-```
+
+    +-------------------+
+    |                   |                       +--------------------+                        +-----------------+
+    |                   |        1) Prompt      |                    |      2) /authorize     |                 |
+    |                   |---------------------->|                    |----------------------->|                 |
+    |                   |                       |                    |  11) /token + MCP-CODE |                 |
+    |                   |                       |     MCP Client     |----------------------->|                 |
+    |                   |                       |   (LLM-enabled)    |       12) TOKEN        |                 |
+    |                   |10) redirect + MCP-CODE|                    |<-----------------------|                 |
+    |                   |---------------------->|                    | 13) Call Tool +  TOKEN |                 |
+    |   User Agent      |                       |                    |----------------------->|                 |                                 +-------------+
+    |                   |                       |                    |                        |                 |                                 |             |
+    |                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
+    |                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
+    |                   |                       |                    |<-----------------------|                 |                                 | Backend API |
+    |                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
+    |                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 14') (AuthZEN)
+    |                   |                       +--------------------+                        |                 |                                 |             |<---
+    |                   |                                                                     |  (Exposed TOOL) |                                 |             |
+    |                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
+    |                   |<--------------------------------------------------------------------|                 |<--------------------------------|             |
+    |                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
+    |                   |-------------------------------------------------------------------->|                 | WWW-Authenticate:               |             |
+    |                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
+    |                   |<--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
+    |                   |                                                                     |                 |                                 |             |
+    |                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
+    |                   |<------------------------------------------------------------------- |                 |
+    |                   |                                                                     |                 |
+    |                   |                        +---------------------+                      |                 |
+    |                   |    4) /authorize       |                     | 7) /token + AS-CODE  |                 |
+    |                   |----------------------> |    External AS      <----------------------|                 |
+    |                   |                        |      (IdP)          |                      |                 |
+    |                   | 5) redirect + AS-CODE  |                     |      8) TOKEN        |                 |
+    |                   |<---------------------- |                     ---------------------->|                 |
+    |                   |                        |                     |                      |                 |
+    +-------------------+                        +---------------------+                      +-----------------+
+
 _Figure 2: Abstract AI Agent MCP Use Case Flow with External AS_
 
 As per section 2.10 Third-Party Authorization Flow of the [MCP] specification, the MCP server acts as an authorization server, but proxies an external AS. In our use-case,
@@ -542,6 +537,7 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="A n
   }
 }
 ```
+
 > Note: The methods used by MCP Clients and Agents to discover the right Tool(s) to use is out of scope of this specification
 
 The LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.

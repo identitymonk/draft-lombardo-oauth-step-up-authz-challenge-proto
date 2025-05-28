@@ -1438,8 +1438,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-4.3.2-5">The following is a non-normative example of a WWW-Authenticate header with the error code <code>insufficient_delegated_authorization</code> and associated payload:<a href="#section-4.3.2-5" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-6">```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization",
-error_description="A different authorization level is required"<a href="#section-4.3.2-6" class="pilcrow">¶</a></p>
+WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"<a href="#section-4.3.2-6" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-7">{
   "decision": false,
   "context": {
@@ -1455,8 +1454,7 @@ error_description="A different authorization level is required"<a href="#section
 <p id="section-4.3.2-8">The following is a non-normative example of a compliant HTTP response relaying the response of a <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> compliant policy decision point (PDP) to the requesting client:<a href="#section-4.3.2-8" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-9">```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization",
-error_description="A different authorization level is required"<a href="#section-4.3.2-9" class="pilcrow">¶</a></p>
+WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"<a href="#section-4.3.2-9" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-10">{
   "decision": false,
   "context": {
@@ -1513,19 +1511,16 @@ error_description="A different authorization level is required"<a href="#section
 <p id="section-4.3.3-5">The following is a non-normative example of a compliant response where the resource server requests a PAR authorization ceremony:<a href="#section-4.3.3-5" class="pilcrow">¶</a></p>
 <p id="section-4.3.3-6">```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization",
-error_description="Requires PAR."<a href="#section-4.3.3-6" class="pilcrow">¶</a></p>
+WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires PAR."<a href="#section-4.3.3-6" class="pilcrow">¶</a></p>
 <p id="section-4.3.3-7">{
   "method": "urn:ietf:params:oauth:grant-ext:par",
-  "reference": "https://tfp.example.org/request.jwt/
-GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
+  "reference": "https://tfp.example.org/request.jwt/GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
 }
 ```<a href="#section-4.3.3-7" class="pilcrow">¶</a></p>
 <p id="section-4.3.3-8">The following is a non-normative example of a compliant response where the resource server requests pecific authorization details:<a href="#section-4.3.3-8" class="pilcrow">¶</a></p>
 <p id="section-4.3.3-9">```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization",
-error_description="Requires RAR."<a href="#section-4.3.3-9" class="pilcrow">¶</a></p>
+WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires RAR."<a href="#section-4.3.3-9" class="pilcrow">¶</a></p>
 <p id="section-4.3.3-10">{
   "method": "urn:ietf:params:oauth:grant-ext:rar",
   "authorization_details":  [
@@ -1946,9 +1941,8 @@ error_description="Requires RAR."<a href="#section-4.3.3-9" class="pilcrow">¶</
 <p id="appendix-A.1.3-2">```http
 POST /Pay
 Host: tool.example.com
-Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef<a href="#appendix-A.1.3-2" class="pilcrow">¶</a></p>
-<p id="appendix-A.1.3-3">to=DE02100100109307118603&amp;
-amount=123.50
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30<a href="#appendix-A.1.3-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.3-3">to=DE02100100109307118603&amp;amount=123.50
 ```<a href="#appendix-A.1.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2008,20 +2002,7 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="A n
           </h4>
 <p id="appendix-A.1.5-1">Step 7 details:<a href="#appendix-A.1.5-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.1.5-2"><code>http
-GET /oauth2/authorize?response_type=code
-   &amp;client_id=eb1e27d2df8b7
-   &amp;state=af0ifjsldkj
-   &amp;redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
-   &amp;code_challenge_method=S256
-   &amp;code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
-   &amp;authorization_details=%5B%7B%22type%22:%20%22payment_initiation
-   %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
-   %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
-   %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
-   %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
-   %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
-   %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
-   %20Merchant%22%7D%5D
+GET /oauth2/authorize?response_type=code&amp;client_id=eb1e27d2df8b7&amp;state=af0ifjsldkj&amp;redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb&amp;code_challenge_method=S256&amp;code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U&amp;authorization_details=%5B%7B%22type%22:%20%22payment_initiation%22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22%5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,%22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount%22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,%22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603%22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number%20Merchant%22%7D%5D
 Host: idp.example.com
 </code><a href="#appendix-A.1.5-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">

@@ -107,7 +107,6 @@ informative:
   MCP:
     title: Model Context Protocol
     target: https://modelcontextprotocol.io/specification/2025-03-26/basic
-    org: Anthropic
 
 
 --- abstract

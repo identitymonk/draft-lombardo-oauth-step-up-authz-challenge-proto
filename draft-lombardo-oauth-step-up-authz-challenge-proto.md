@@ -230,8 +230,7 @@ The following is a non-normative example of a WWW-Authenticate header with the e
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization",
-error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
 
 {
   "decision": false,
@@ -250,8 +249,7 @@ The following is a non-normative example of a compliant HTTP response relaying t
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization",
-error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
 
 {
   "decision": false,
@@ -297,13 +295,11 @@ The following is a non-normative example of a compliant response where the resou
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization",
-error_description="Requires PAR."
+WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires PAR."
 
 {
   "method": "urn:ietf:params:oauth:grant-ext:par",
-  "reference": "https://tfp.example.org/request.jwt/
-GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
+  "reference": "https://tfp.example.org/request.jwt/GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
 }
 ```
 
@@ -311,8 +307,7 @@ The following is a non-normative example of a compliant response where the resou
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization",
-error_description="Requires RAR."
+WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires RAR."
 
 {
   "method": "urn:ietf:params:oauth:grant-ext:rar",
@@ -491,10 +486,9 @@ Step 13 details: MCP Client receives a directive to use the MCP Tool with a spec
 ```http
 POST /Pay
 Host: tool.example.com
-Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
 
-to=DE02100100109307118603&
-amount=123.50
+to=DE02100100109307118603&amount=123.50
 ```
 
 ### LLM Tool receives the request
@@ -547,20 +541,7 @@ The LLM Agent has learned all necessary endpoints and supported capabilites to o
 Step 7 details:
 
 ```http
-GET /oauth2/authorize?response_type=code
-   &client_id=eb1e27d2df8b7
-   &state=af0ifjsldkj
-   &redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
-   &code_challenge_method=S256
-   &code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
-   &authorization_details=%5B%7B%22type%22:%20%22payment_initiation
-   %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
-   %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
-   %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
-   %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
-   %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
-   %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
-   %20Merchant%22%7D%5D
+GET /oauth2/authorize?response_type=code&client_id=eb1e27d2df8b7&state=af0ifjsldkj&redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb&code_challenge_method=S256&code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U&authorization_details=%5B%7B%22type%22:%20%22payment_initiation%22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22%5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,%22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount%22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,%22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603%22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number%20Merchant%22%7D%5D
 Host: idp.example.com
 ```
 

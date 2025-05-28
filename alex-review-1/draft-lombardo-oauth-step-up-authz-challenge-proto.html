@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>OAuth 2.0 step-up authorization challenge proto</title>
+<meta content="Jean-François Lombardo" name="author">
+<meta content="Alexandre Babeanu" name="author">
+<meta content="
+       It is not uncommon for resource servers to require additional information like details of delegation authorization, or assurance proof of the delegation of authorization mechanism used according to the characteristics of a request. This document introduces a mechanism that resource servers can use to signal to a client that the  data and metadata  associated with
+the access token of the current request does not meet its authorization requirements and, further, how to meet them. This document also codifies a taxonomy to guide the client into starting a new request towards the authorization server in order to get issued, if applicable, a new set of tokens matching the requirements. 
+    " name="description">
+<meta content="xml2rfc 3.28.1" name="generator">
+<meta content="security" name="keyword">
+<meta content="trust" name="keyword">
+<meta content="draft-lombardo-oauth-step-up-authz-challenge-proto-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.28.1
+    Python 3.12.10
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.6
+    lxml 5.3.0
+    platformdirs 4.3.8
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.3
+    setuptools 70.3.0
+    wcwidth 0.2.13
+-->
+<link href="draft-lombardo-oauth-step-up-authz-challenge-proto.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">STEPZ</td>
+<td class="right">May 2025</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Lombardo &amp; Babeanu</td>
+<td class="center">Expires 29 November 2025</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Web Authorization Protocol</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-lombardo-oauth-step-up-authz-challenge-proto-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2025-05-28" class="published">28 May 2025</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2025-11-29">29 November 2025</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">J. Lombardo</div>
+<div class="org">AWS</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Babeanu</div>
+<div class="org">IndyKite</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">OAuth 2.0 step-up authorization challenge proto</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">It is not uncommon for resource servers to require additional information like details of delegation authorization, or assurance proof of the delegation of authorization mechanism used according to the characteristics of a request. This document introduces a mechanism that resource servers can use to signal to a client that the  data and metadata  associated with
+the access token of the current request does not meet its authorization requirements and, further, how to meet them. This document also codifies a taxonomy to guide the client into starting a new request towards the authorization server in order to get issued, if applicable, a new set of tokens matching the requirements.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://identitymonk.github.io/draft-lombardo-oauth-step-up-au%20%20%20thz-challenge/draft-lombardo-oauth-step-up-authz-challenge-proto.html">https://identitymonk.github.io/draft-lombardo-oauth-step-up-au   thz-challenge/draft-lombardo-oauth-step-up-authz-challenge-proto.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-lombardo-oauth-step-up-authz-challenge-proto/">https://datatracker.ietf.org/doc/draft-lombardo-oauth-step-up-authz-challenge-proto/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Web Authorization Protocol  mailing list (<span><a href="mailto:oauth@ietf.org">mailto:oauth@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/oauth/">https://mailarchive.ietf.org/arch/browse/oauth/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/oauth/">https://www.ietf.org/mailman/listinfo/oauth/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge">https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 29 November 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2025 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-protocol-overview" class="internal xref">Protocol Overview</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-authorization-requirements-" class="internal xref">Authorization Requirements Challenge</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-http-error-status-code" class="internal xref">HTTP Error Status Code</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-www-authenticate-header-err" class="internal xref">WWW-Authenticate Header Error Codes And Associated Payloads</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.1">
+                    <p id="section-toc.1-1.4.2.3.2.1.1"><a href="#section-4.3.1" class="auto internal xref">4.3.1</a>.  <a href="#name-response-payloads" class="internal xref">Response Payloads</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.2">
+                    <p id="section-toc.1-1.4.2.3.2.2.1"><a href="#section-4.3.2" class="auto internal xref">4.3.2</a>.  <a href="#name-insufficient_delegated_auth" class="internal xref"><code>insufficient_delegated_authorization</code> Error</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.3">
+                    <p id="section-toc.1-1.4.2.3.2.3.1"><a href="#section-4.3.3" class="auto internal xref">4.3.3</a>.  <a href="#name-requested_authorization-err" class="internal xref"><code>requested_authorization</code> Error</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-setp-up-auhtorization-reque" class="internal xref">Setp-Up Auhtorization Request</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-case-of-insufficient_delega" class="internal xref">Case Of <code>insufficient_delegated_authorization</code> Error</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-case-of-requested_authoriza" class="internal xref">Case Of <code>requested_authorization</code> Error</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-authorization-response" class="internal xref">Authorization Response</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-information-conveyed-via-th" class="internal xref">Information conveyed via the Access Token</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-authorization-server-metada" class="internal xref">Authorization Server Metadata</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-deployment-considerations" class="internal xref">Deployment  Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-use-cases" class="internal xref">Use Cases</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-llm-agent-accessing-a-servi" class="internal xref">LLM Agent accessing a service via an LLM Tool on behalf of a user</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1.2.1">
+                    <p id="section-toc.1-1.13.2.1.2.1.1"><a href="#appendix-A.1.1" class="auto internal xref">A.1.1</a>.  <a href="#name-preconditions" class="internal xref">Preconditions</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1.2.2">
+                    <p id="section-toc.1-1.13.2.1.2.2.1"><a href="#appendix-A.1.2" class="auto internal xref">A.1.2</a>.  <a href="#name-flow-details" class="internal xref">Flow details</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1.2.3">
+                    <p id="section-toc.1-1.13.2.1.2.3.1"><a href="#appendix-A.1.3" class="auto internal xref">A.1.3</a>.  <a href="#name-mcp-client-receives-a-respo" class="internal xref">MCP Client receives a response from the LLM</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1.2.4">
+                    <p id="section-toc.1-1.13.2.1.2.4.1"><a href="#appendix-A.1.4" class="auto internal xref">A.1.4</a>.  <a href="#name-llm-tool-receives-the-reque" class="internal xref">LLM Tool receives the request</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1.2.5">
+                    <p id="section-toc.1-1.13.2.1.2.5.1"><a href="#appendix-A.1.5" class="auto internal xref">A.1.5</a>.  <a href="#name-llm-tool-obtains-the-access" class="internal xref">LLM Tool obtains the access_token from the Authorization Server protecting the API</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known a provisioning time. Although that approach is viable in many situations, it falls short in several important circumstances. Consider, for instance, a FAPI 2.0 or SMART on FHIR regulated API requiring peculiar client authentication mechanism to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document extends the collection of error codes defined by <span>[<a href="#RFC6750" class="cite xref">RFC6750</a>]</span> and by <span>[<a href="#RFC9470" class="cite xref">RFC9470</a>]</span> with a new error codes, <code>insufficient_delegated_authorization</code> and <code>requested_authorization</code>, which can be used by resource servers to signal to clients that the authorization delegation represented by the access token presented with the request does not meet the authorization requirements of the resource server. This document also introduces associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Auhtorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>, OAuth 2.0 Pushed Authorization Request <span>[<a href="#RFC9126" class="cite xref">RFC9126</a>]</span>, or OAuth 2.0 JWT-Secured Authorization Request <span>[<a href="#RFC9101" class="cite xref">RFC9101</a>]</span> for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This specification uses the terms "access token", "authorization server", "authorization endpoint", "authorization request", "client", "protected resource", and "resource server" defined by <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="protocol-overview">
+<section id="section-3">
+      <h2 id="name-protocol-overview">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocol-overview" class="section-name selfRef">Protocol Overview</a>
+      </h2>
+<p id="section-3-1">The following is an end-to-end sequence of a typical step up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3-2">
+<pre>
++----------+                                          +--------------+
+|          |                                          |              |
+|          |-----------(1) request ------------------&gt;|              |
+|          |                                          |              |
+|          |&lt;---------(2) challenge ------------------|   Resource   |
+|          |                                          |    Server    |
+|  Client  |                                          |              |
+|          |-----------(5) request ------------------&gt;|              |
+|          |                                          |              |
+|          |&lt;-----(6) protected resource -------------|              |
+|          |                                          +--------------+
+|          |
+|          |
+|          |  +-------+                              +---------------+
+|          |-&gt;|       |                              |               |
+|          |  |       |--(3) authorization request--&gt;|               |
+|          |  | User  |                              |               |
+|          |  | Agent |&lt;-----------[...]------------&gt;| Authorization |
+|          |  |       |                              |     Server    |
+|          |&lt;-|       |                              |               |
+|          |  +-------+                              |               |
+|          |                                         |               |
+|          |&lt;-------- (4) access token --------------|               |
+|          |                                         |               |
++----------+                                         +---------------+
+</pre><a href="#section-3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3-3"><em>Figure 1: Abstract Protocol Flow</em><a href="#section-3-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-4">
+<li id="section-3-4.1">
+          <p id="section-3-4.1.1">The client requests a protected resource, presenting an access token.<a href="#section-3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-4.2">
+          <p id="section-3-4.2.1">The resource server determines that the circumstances in which the presented access token was obtained offer insufficient authorization details, wrong grant flow, or inadequate client authentication mechanism; it therefore denies the request and returns a challenge describing (using a combination of error code and payload details) what authorization requirements must be met to allow the request. It is possible here for the resource server to rely on the responses from an external policy decision point.<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-4.3">
+          <p id="section-3-4.3.1">The client redirects the user agent to the authorization server with an authorization request that includes the authorization details indicated by the resource server in the previous step.<a href="#section-3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-4.4">
+          <p id="section-3-4.4.1">A new and adequate authorization sequence takes place between the user agent, the client and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The authorization server uses the payload for the resource server's response forwarded by the client to initiate the right grant flow type or to ensure that the authorization details are met. The authorization server may here also contact an external policy decision point to request evaluation of complex business access policies. The newly minted access token contains or references information about the authorization elements required, including but not limited to the claims defined in <span>[<a href="#I-D.lombardo-oauth-client-extension-claims" class="cite xref">I-D.lombardo-oauth-client-extension-claims</a>]</span>.<a href="#section-3-4.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-4.5">
+          <p id="section-3-4.5.1">The client repeats the request from step 1, presenting the newly obtained access token.<a href="#section-3-4.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-4.6">
+          <p id="section-3-4.6.1">The resource server finds that the authorization details, grant flow or client authentication mechanism used during the acquisition of the new access token complies with its requirements and returns the representation of the requested protected resource.<a href="#section-3-4.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-3-5">The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> or is validated via introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span>, <span>[<a href="#XACML" class="cite xref">XACML</a>]</span> or NIST's ABAC <span>[<a href="#SP.800-162" class="cite xref">SP.800-162</a>]</span>. This document rather describes the methoids by which the resource provider can signal to the client the type(s) of authorization garantees it is expected to obtain from the authorization server for the given request.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particuliar authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.<a href="#section-3-7" class="pilcrow">¶</a></p>
+<p id="section-3-8">Although the case in which the new access token supersedes old tokens by virtue of a higher authorization state is common, in line with the connotation of the term "step up authorization", it is important to keep in mind that this might not necessarily hold true in the general case. For example, for a particular request, a resource server might require a higher authorization state and a shorter validity, resulting in a token suitable for one-off calls but leading to frequent prompts: hence, offering a suboptimal user experience if the token is reused for routine operations. In such a scenario, the client would be better served by keeping both the old tokens, which are associated with a lower authorization state, and the new one: selecting the appropriate token for each API call. This is not a new requirement for clients, as incremental consent and least-privilege principles will require similar algorithms for managing access tokens associated with different scopes and permission levels. This document does not recommend any specific token-caching strategy: that choice will be dependent on the characteristics of every particular scenario and remains application-dependent as in the core OAuth cases. Furthermore, OAuth 2.0 <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> assumes access tokens are treated as opaque by clients. The token format might thus be unreadable to the client or might change at any time to become unreadable. So, during the course of any token-caching strategy, a client must not attempt to inspect the content of the access token to determine the associated authentication information or other details (see Section 6 of <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> for a more detailed discussion).<a href="#section-3-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authorization-requirements-challenge">
+<section id="section-4">
+      <h2 id="name-authorization-requirements-">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-authorization-requirements-" class="section-name selfRef">Authorization Requirements Challenge</a>
+      </h2>
+<div id="http-error-status-code">
+<section id="section-4.1">
+        <h3 id="name-http-error-status-code">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-http-error-status-code" class="section-name selfRef">HTTP Error Status Code</a>
+        </h3>
+<p id="section-4.1-1">When a request compliant with this specification does not meet its authorization state requirements, the resource server responds using the <code>403</code> HTTP status code with the Bearer authentication scheme's error parameter (from <span>[<a href="#RFC6750" class="cite xref">RFC6750</a>]</span>) .<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="error-codes">
+<section id="section-4.2">
+        <h3 id="name-error-codes">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+        </h3>
+<p id="section-4.2-1">This specification introduces two new error code values for this challenge and other OAuth authentication schemes, as defined in OAuth 2.0 Demonstrating Proof of Possession (DPoP)<span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> and in OAuth 2.0 Step Up Authentication Challenge Protocol<span>[<a href="#RFC9470" class="cite xref">RFC9470</a>]</span>:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-2">
+          <dt id="section-4.2-2.1">
+<code>insufficient_delegated_authorization</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. It is up to the client to decide what to perform next; some further implementation-specific details are provided in the payload of the response (see below).<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.3">
+<code>requested_authorization</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.4">
+            <p id="section-4.2-2.4.1">The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided a detailed standard response that describes exactly which new authorization mechanisms and details <span class="bcp14">SHOULD</span> be used in order to gain access to the requested resource. The client is expected to then initiate new ceremonies with the authorization server, that comply with the stated resource requirements.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-3">Note: the logic through which the resource server determines that the current request does not meet the authorization state requirements of the protected resource, and associated functionality (such as expressing, deploying and publishing such requirements), is out of scope for this document.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="www-authenticate-header-error-codes-and-associated-payloads">
+<section id="section-4.3">
+        <h3 id="name-www-authenticate-header-err">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-www-authenticate-header-err" class="section-name selfRef">WWW-Authenticate Header Error Codes And Associated Payloads</a>
+        </h3>
+<p id="section-4.3-1">Each error code matches different types of HTTP response payloads, which guide the client into initiating the next Authorization Request.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<div id="response-payloads">
+<section id="section-4.3.1">
+          <h4 id="name-response-payloads">
+<a href="#section-4.3.1" class="section-number selfRef">4.3.1. </a><a href="#name-response-payloads" class="section-name selfRef">Response Payloads</a>
+          </h4>
+<p id="section-4.3.1-1">This document specifies that all compliant HTTP responses must contain a payload, and that the contents of this payload depends on the error code issued by the resource server.<a href="#section-4.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-2">The payload is expected to be a JSON object, the details of which are provided in the following sections.<a href="#section-4.3.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="insufficientdelegatedauthorization-error">
+<section id="section-4.3.2">
+          <h4 id="name-insufficient_delegated_auth">
+<a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-insufficient_delegated_auth" class="section-name selfRef"><code>insufficient_delegated_authorization</code> Error</a>
+          </h4>
+<p id="section-4.3.2-1">If the error code <code>insufficient_delegated_authorization</code> is used, then the HTTP <code>&lt;payload&gt;</code> <span class="bcp14">MUST</span> be formatted as an AuthZEN <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> response for a <code>decision</code> that is set to <code>false</code> and <span class="bcp14">MUST</span> include as part of the response a <code>context</code> object:<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.2-2">
+            <dt id="section-4.3.2-2.1">error_msg:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-2.2">
+              <p id="section-4.3.2-2.2.1"><em><span class="bcp14">REQUIRED</span></em> - a string representing a human readable justification of the resource provider access control leading to a <code>deny</code> of the request.<a href="#section-4.3.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-2.3">details:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-2.4">
+              <p id="section-4.3.2-2.4.1"><em><span class="bcp14">REQUIRED</span></em> - a valid <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> JSON structure<a href="#section-4.3.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.3.2-3">The <code>details</code> JSON structure <span class="bcp14">MUST</span> include only one of the following element:<a href="#section-4.3.2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.2-4">
+            <dt id="section-4.3.2-4.1">expected_claims:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-4.2">
+              <p id="section-4.3.2-4.2.1"><em><span class="bcp14">OPTIONAL</span></em> - a list of space-delimited, case-sensitive strings representing the claim names that must to be provided in the access token.<a href="#section-4.3.2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-4.3">expected_values:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-4.4">
+              <p id="section-4.3.2-4.4.1"><em><span class="bcp14">OPTIONAL</span></em> - a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure that will indicate the claim names that must to be provided as JSON keys and the values, expressed as a JSON array of values.<a href="#section-4.3.2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-4.5">pdp_message:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-4.6">
+              <p id="section-4.3.2-4.6.1"><em><span class="bcp14">OPTIONAL</span></em> - a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure representing the error details the format of the policy decision point (PDP) that is the access authority for the resource provider. If the PDP is <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> compliant, then the <code>pdp_message</code> <span class="bcp14">MAY</span> relay the PDP response <code>context</code> object.<a href="#section-4.3.2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.3.2-5">The following is a non-normative example of a WWW-Authenticate header with the error code <code>insufficient_delegated_authorization</code> and associated payload:<a href="#section-4.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-6">```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="insufficient_user_authorization",
+error_description="A different authorization level is required"<a href="#section-4.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-7">{
+  "decision": false,
+  "context": {
+    "error_msg": "The user must belongs to a project to access the resource",
+    "details": {
+      "expected_values": {
+        "project" : ["phoenix", "eagle"]
+      }
+    }
+  }
+}
+```<a href="#section-4.3.2-7" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-8">The following is a non-normative example of a compliant HTTP response relaying the response of a <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> compliant policy decision point (PDP) to the requesting client:<a href="#section-4.3.2-8" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-9">```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="insufficient_user_authorization",
+error_description="A different authorization level is required"<a href="#section-4.3.2-9" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-10">{
+  "decision": false,
+  "context": {
+    "error_msg": "Access Policy failure",
+    "details": {
+      "pdp_message": {
+        "id": "0",
+        "reason_admin": {
+          "en": "Request failed policy C076E82F"
+        },
+        "reason_user": {
+          "en-403": "Insufficient privileges. Contact your administrator",
+          "es-403": "Privilegios insuficientes. Póngase en contacto con su administrador"
+        }
+      }
+    }
+  }
+}
+```<a href="#section-4.3.2-10" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-11">The format of the <code>pdp_message</code> element is left implementation specific and non-normative; it should be negotiated and agreed upon by the client and resource server. Nevertheless usage of open standards is recommended, for example the usage of <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span> payloads wherever possible.<a href="#section-4.3.2-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="requestedauthorization-error">
+<section id="section-4.3.3">
+          <h4 id="name-requested_authorization-err">
+<a href="#section-4.3.3" class="section-number selfRef">4.3.3. </a><a href="#name-requested_authorization-err" class="section-name selfRef"><code>requested_authorization</code> Error</a>
+          </h4>
+<p id="section-4.3.3-1">If the error code <code>requested_authorization</code> is used, the HTTP payload <span class="bcp14">MUST</span> be a valid JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> structure wich will include:<a href="#section-4.3.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.3-2">
+            <dt id="section-4.3.3-2.1">method:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-2.2">
+              <p id="section-4.3.3-2.2.1"><em><span class="bcp14">REQUIRED</span></em> - The value of this element <span class="bcp14">MUST</span> be an absolute URI that can be registered with IANA. It <span class="bcp14">SHOULD</span> support present, future or custom values. If IANA registered URIs are used, then their meaning and semantics should be respected and used as defined in the registry. This specification recognizes primarily the values <code>urn:ietf:params:oauth:grant-ext:rar</code> defined by the Rich Authorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> specification and <code>urn:ietf:params:oauth:grant-ext:par</code> defined through the Pushed Authorization Request <span>[<a href="#RFC9126" class="cite xref">RFC9126</a>]</span> specification.<a href="#section-4.3.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.3.3-3">The structure <span class="bcp14">MUST</span> then include one of the following elements:<a href="#section-4.3.3-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.3-4">
+            <dt id="section-4.3.3-4.1">authorization_details:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-4.2">
+              <p id="section-4.3.3-4.2.1"><em><span class="bcp14">OPTIONAL</span></em> -  in JSON notation, an array of objects as defined in section 2 of Rich Authorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span><a href="#section-4.3.3-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-4.3">jar:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-4.4">
+              <p id="section-4.3.3-4.4.1"><em><span class="bcp14">OPTIONAL</span></em> - a JSON Web Token (JWT) <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>, which JWT Claims Set holds the JSON-encoded OAuth 2.0 authorization request parameters as defined in section 2.1 of JWT-Secured Authorization Request <span>[<a href="#RFC9101" class="cite xref">RFC9101</a>]</span><a href="#section-4.3.3-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-4.5">reference:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-4.6">
+              <p id="section-4.3.3-4.6.1"><em><span class="bcp14">OPTIONAL</span></em> - an absolute URI that references the set of parameters comprising an OAuth 2.0 authorization request in a form of a Request Object as defined in section 2.2 of JWT-Secured Authorization Request <span>[<a href="#RFC9101" class="cite xref">RFC9101</a>]</span><a href="#section-4.3.3-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.3.3-5">The following is a non-normative example of a compliant response where the resource server requests a PAR authorization ceremony:<a href="#section-4.3.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-6">```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="requested_authorization",
+error_description="Requires PAR."<a href="#section-4.3.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-7">{
+  "method": "urn:ietf:params:oauth:grant-ext:par",
+  "reference": "https://tfp.example.org/request.jwt/
+GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
+}
+```<a href="#section-4.3.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-8">The following is a non-normative example of a compliant response where the resource server requests pecific authorization details:<a href="#section-4.3.3-8" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-9">```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="requested_authorization",
+error_description="Requires RAR."<a href="#section-4.3.3-9" class="pilcrow">¶</a></p>
+<p id="section-4.3.3-10">{
+  "method": "urn:ietf:params:oauth:grant-ext:rar",
+  "authorization_details":  [
+      {
+         "type": "customer_information",
+         "locations": [
+            "https://example.com/customers"
+         ],
+         "actions": [
+            "read",
+            "write"
+         ],
+         "datatypes": [
+            "contacts",
+            "photos"
+         ]
+      }
+   ]
+}
+```<a href="#section-4.3.3-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="setp-up-auhtorization-request">
+<section id="section-5">
+      <h2 id="name-setp-up-auhtorization-reque">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-setp-up-auhtorization-reque" class="section-name selfRef">Setp-Up Auhtorization Request</a>
+      </h2>
+<p id="section-5-1">A client receiving a step-up Authorization challenge as defined in section 4 of this specification from the resource server <span class="bcp14">MUST</span> take actions appropriate to each use case, as describe in the following sections.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="case-of-insufficientdelegatedauthorization-error">
+<section id="section-5.1">
+        <h3 id="name-case-of-insufficient_delega">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-case-of-insufficient_delega" class="section-name selfRef">Case Of <code>insufficient_delegated_authorization</code> Error</a>
+        </h3>
+<p id="section-5.1-1">This case is implementation-specific and the client <span class="bcp14">MUST</span> determine on its own the next course of action. The client <span class="bcp14">MAY</span> for example decide to provide feedback to the end user, or <span class="bcp14">MAY</span> additionally trigger further ceremonies between the user agent and/or authorization server, or <span class="bcp14">MAY</span> follow any other applicable RFC. It is assumed here that an out-of-band contract exists between client and resource server, which enables the client to eventually provide the resource server with the right access token to access the protected resource.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<div id="case-of-requestedauthorization-error">
+<section id="section-5.1.1">
+          <h4 id="name-case-of-requested_authoriza">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-case-of-requested_authoriza" class="section-name selfRef">Case Of <code>requested_authorization</code> Error</a>
+          </h4>
+<p id="section-5.1.1-1">In this case, the client <span class="bcp14">MUST</span> follow the requirements fixed by the Resource Provider. The following situations CAN occur:<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+            <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">method</th>
+                <th class="text-left" rowspan="1" colspan="1">authorization_details</th>
+                <th class="text-left" rowspan="1" colspan="1">jar</th>
+                <th class="text-left" rowspan="1" colspan="1">reference</th>
+                <th class="text-left" rowspan="1" colspan="1">Expectation of the client</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:rar</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined by RAR with the authorization details</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:rar</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined in RAR with the Request Object in JWT format</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:rar</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined in RAR with the Request Object URI (it would mean the Resource Provider will have send the Request Object to AS directly)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:par</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined by PAR with the authorization details</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:par</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined in PAR with the Request Object in JWT format</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>urn:ietf:params:oauth:grant-ext:par</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">Set as specified</td>
+                <td class="text-left" rowspan="1" colspan="1">Starts an Authorization Request as defined in PAR with the Request Object URI (it would mean the Resource Provider will have send the Request Object to AS directly)</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-5.1.1-3">This specification recognizes that other method URI might be defined in the future. The relevant specifications <span class="bcp14">SHALL</span> define the expected behavior for such new methods.<a href="#section-5.1.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="authorization-response">
+<section id="section-6">
+      <h2 id="name-authorization-response">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-authorization-response" class="section-name selfRef">Authorization Response</a>
+      </h2>
+<p id="section-6-1">An authorization server complying with this specification will react to the presence of the presented parameters and react as defined by the associated specification being, without limitations to, the response described in <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="information-conveyed-via-the-access-token">
+<section id="section-7">
+      <h2 id="name-information-conveyed-via-th">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-information-conveyed-via-th" class="section-name selfRef">Information conveyed via the Access Token</a>
+      </h2>
+<p id="section-7-1">To evaluate whether an access token meets the protected resource's requirements, the resource server will enforce the conventional token-validation logic before analysing the content of the payload of the token as defined by <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>, <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>, and <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> as long as any specification that applies to IANA registered claims.<a href="#section-7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authorization-server-metadata">
+<section id="section-8">
+      <h2 id="name-authorization-server-metada">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-authorization-server-metada" class="section-name selfRef">Authorization Server Metadata</a>
+      </h2>
+<p id="section-8-1">TODO<a href="#section-8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="deployment-considerations">
+<section id="section-9">
+      <h2 id="name-deployment-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-deployment-considerations" class="section-name selfRef">Deployment  Considerations</a>
+      </h2>
+<p id="section-9-1">This specification facilitates the communication of requirements from a resource server to a client, which, in turn, can enable a more granular and appropriate Authorization Request at the Authorization Server using either an OAuth 2.0 <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> defined grant flow, a Rich Authorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>, a Push Authorization Request <span>[<a href="#RFC9126" class="cite xref">RFC9126</a>]</span>, or a JWT-Secured Authorization Request <span>[<a href="#RFC9101" class="cite xref">RFC9101</a>]</span>. However, it is important to realize that the user experience achievable in every specific deployment is a function of the policies each resource server and authorization server pair establishes. Imposing constraints on those policies is out of scope for this specification. It is therefore perfectly possible for resource servers and authorization servers to impose requirements that are impossible for subjects or clients to comply with or that lead to an undesirable user-experience outcome.<a href="#section-9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-10">
+      <h2 id="name-security-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-10-1">This specification adds to previously defined OAuth mechanisms. Their respective security considerations apply:<a href="#section-10-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10-2.1">
+          <p id="section-10-2.1.1">OAuth 2.0 <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>,<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.2">
+          <p id="section-10-2.2.1">JWT access tokens <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span>,<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.3">
+          <p id="section-10-2.3.1">Bearer WWW-Authenticate <span>[<a href="#RFC6750" class="cite xref">RFC6750</a>]</span>,<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.4">
+          <p id="section-10-2.4.1">token introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span>,<a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.5">
+          <p id="section-10-2.5.1">authorization server metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span>,<a href="#section-10-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.6">
+          <p id="section-10-2.6.1">Rich Authorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>,<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.7">
+          <p id="section-10-2.7.1">Push Authorization Request <span>[<a href="#RFC9126" class="cite xref">RFC9126</a>]</span>,<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.8">
+          <p id="section-10-2.8.1">JWT-Secured Authorization Request <span>[<a href="#RFC9101" class="cite xref">RFC9101</a>]</span> and<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.9">
+          <p id="section-10-2.9.1">AuthZEN <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span><a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-10-3">This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4. Still, such payload might unintentionally disclose information about the subject, the resource, the action to be performed, as long as context-specific data such as but not limited to authorization details  that an attacker might use to gain knowledge about their target. Implementers should use care in determining what to disclose in the challenge and in what circumstances.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">For this specification, the resource provider <span class="bcp14">MUST</span> examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.<a href="#section-10-4" class="pilcrow">¶</a></p>
+<p id="section-10-5">As this specification provides a mechanism for the resource server to trigger user interaction, it's important for the authorization server and clients to consider that a malicious resource server might abuse that feature.<a href="#section-10-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-11">
+      <h2 id="name-iana-considerations">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-11-1">This document has no IANA actions.<a href="#section-11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-12">
+      <h2 id="name-references">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-12.1">
+        <h3 id="name-normative-references">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="D-OpenID-AuthZEN">[D-OpenID-AuthZEN]</dt>
+        <dd>
+<span class="refAuthor">GAzitt, O., Ed.</span>, <span class="refAuthor">Brossard, D., Ed.</span>, and <span class="refAuthor">A. Tulshibagwale, Ed.</span>, <span class="refTitle">"Authorization API"</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://openid.github.io/authzen/">https://openid.github.io/authzen/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6749">[RFC6749]</dt>
+        <dd>
+<span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6750">[RFC6750]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span> and <span class="refAuthor">D. Hardt</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework: Bearer Token Usage"</span>, <span class="seriesInfo">RFC 6750</span>, <span class="seriesInfo">DOI 10.17487/RFC6750</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6750">https://www.rfc-editor.org/rfc/rfc6750</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7519">[RFC7519]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8259">[RFC8259]</dt>
+        <dd>
+<span class="refAuthor">Bray, T., Ed.</span>, <span class="refTitle">"The JavaScript Object Notation (JSON) Data Interchange Format"</span>, <span class="seriesInfo">STD 90</span>, <span class="seriesInfo">RFC 8259</span>, <span class="seriesInfo">DOI 10.17487/RFC8259</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8259">https://www.rfc-editor.org/rfc/rfc8259</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9068">[RFC9068]</dt>
+        <dd>
+<span class="refAuthor">Bertocci, V.</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens"</span>, <span class="seriesInfo">RFC 9068</span>, <span class="seriesInfo">DOI 10.17487/RFC9068</span>, <time datetime="2021-10" class="refDate">October 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9068">https://www.rfc-editor.org/rfc/rfc9068</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9101">[RFC9101]</dt>
+        <dd>
+<span class="refAuthor">Sakimura, N.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">M. Jones</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)"</span>, <span class="seriesInfo">RFC 9101</span>, <span class="seriesInfo">DOI 10.17487/RFC9101</span>, <time datetime="2021-08" class="refDate">August 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9101">https://www.rfc-editor.org/rfc/rfc9101</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9126">[RFC9126]</dt>
+        <dd>
+<span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Sakimura, N.</span>, <span class="refAuthor">Tonge, D.</span>, and <span class="refAuthor">F. Skokan</span>, <span class="refTitle">"OAuth 2.0 Pushed Authorization Requests"</span>, <span class="seriesInfo">RFC 9126</span>, <span class="seriesInfo">DOI 10.17487/RFC9126</span>, <time datetime="2021-09" class="refDate">September 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9126">https://www.rfc-editor.org/rfc/rfc9126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9396">[RFC9396]</dt>
+      <dd>
+<span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Richer, J.</span>, and <span class="refAuthor">B. Campbell</span>, <span class="refTitle">"OAuth 2.0 Rich Authorization Requests"</span>, <span class="seriesInfo">RFC 9396</span>, <span class="seriesInfo">DOI 10.17487/RFC9396</span>, <time datetime="2023-05" class="refDate">May 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9396">https://www.rfc-editor.org/rfc/rfc9396</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-12.2">
+        <h3 id="name-informative-references">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.lombardo-oauth-client-extension-claims">[I-D.lombardo-oauth-client-extension-claims]</dt>
+        <dd>
+<span class="refAuthor">Lombardo, J.</span> and <span class="refAuthor">A. Babeanu</span>, <span class="refTitle">"OAuth 2.0 client extension claims"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lombardo-oauth-client-extension-claims-00</span>, <time datetime="2025-04-11" class="refDate">11 April 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lombardo-oauth-client-extension-claims-00">https://datatracker.ietf.org/doc/html/draft-lombardo-oauth-client-extension-claims-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="MCP">[MCP]</dt>
+        <dd>
+<span class="refTitle">"Model Context Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://modelcontextprotocol.io/specification/2025-03-26/basic">https://modelcontextprotocol.io/specification/2025-03-26/basic</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7662">[RFC7662]</dt>
+        <dd>
+<span class="refAuthor">Richer, J., Ed.</span>, <span class="refTitle">"OAuth 2.0 Token Introspection"</span>, <span class="seriesInfo">RFC 7662</span>, <span class="seriesInfo">DOI 10.17487/RFC7662</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7662">https://www.rfc-editor.org/rfc/rfc7662</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8414">[RFC8414]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">J. Bradley</span>, <span class="refTitle">"OAuth 2.0 Authorization Server Metadata"</span>, <span class="seriesInfo">RFC 8414</span>, <span class="seriesInfo">DOI 10.17487/RFC8414</span>, <time datetime="2018-06" class="refDate">June 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8414">https://www.rfc-editor.org/rfc/rfc8414</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9449">[RFC9449]</dt>
+        <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9470">[RFC9470]</dt>
+        <dd>
+<span class="refAuthor">Bertocci, V.</span> and <span class="refAuthor">B. Campbell</span>, <span class="refTitle">"OAuth 2.0 Step Up Authentication Challenge Protocol"</span>, <span class="seriesInfo">RFC 9470</span>, <span class="seriesInfo">DOI 10.17487/RFC9470</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9470">https://www.rfc-editor.org/rfc/rfc9470</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9728">[RFC9728]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.B.</span>, <span class="refAuthor">Hunt, P.</span>, and <span class="refAuthor">A. Parecki</span>, <span class="refTitle">"OAuth 2.0 Protected Resource Metadata"</span>, <span class="seriesInfo">RFC 9728</span>, <span class="seriesInfo">DOI 10.17487/RFC9728</span>, <time datetime="2025-04" class="refDate">April 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9728">https://www.rfc-editor.org/rfc/rfc9728</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SP.800-162">[SP.800-162]</dt>
+        <dd>
+<span class="refAuthor">Hu, V., Ed.</span>, <span class="refAuthor">Ferraiolo, D., Ed.</span>, <span class="refAuthor">Kuhn, R., Ed.</span>, <span class="refAuthor">Schnitzer, A., Ed.</span>, <span class="refAuthor">Sandlin, K., Ed.</span>, <span class="refAuthor">Miller, R., Ed.</span>, and <span class="refAuthor">K. Scarfone, Ed.</span>, <span class="refTitle">"Guide to Attribute Based Access Control (ABAC) Definition and Considerations"</span>, <time datetime="2014" class="refDate">2014</time>, <span>&lt;<a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-162.pdf">https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-162.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="XACML">[XACML]</dt>
+      <dd>
+<span class="refAuthor">Godik, S., Ed.</span> and <span class="refAuthor">T. M. (Ed.), Ed.</span>, <span class="refTitle">"eXtensible Access Control Markup Language (XACML) Version 1.1"</span>, <time datetime="2006" class="refDate">2006</time>, <span>&lt;<a href="https://www.oasis-open.org/committees/xacml/repository/cs-xacml-specification-1.1.pdf">https://www.oasis-open.org/committees/xacml/repository/cs-xacml-specification-1.1.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="use-cases">
+<section id="appendix-A">
+      <h2 id="name-use-cases">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-use-cases" class="section-name selfRef">Use Cases</a>
+      </h2>
+<div id="llm-agent-accessing-a-service-via-an-llm-tool-on-behalf-of-a-user">
+<section id="appendix-A.1">
+        <h3 id="name-llm-agent-accessing-a-servi">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-llm-agent-accessing-a-servi" class="section-name selfRef">LLM Agent accessing a service via an LLM Tool on behalf of a user</a>
+        </h3>
+<p id="appendix-A.1-1">LLM agents, including those based on large language models (LLMs), are designed to manage user context, memory, and interaction state across multi-turn conversations. To perform complex tasks, these agents often integrate with external systems such as SaaS applications, internal services, or enterprise data sources. When accessing these systems, the agent <span class="bcp14">MAY</span> operate on behalf of an end user; its actions are then constrained by the user’s identity, role, and permissions as defined by the enterprise. This ensures that all data access and operations are properly scoped and compliant with organizational access controls.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">In the case of autonomous agents or agents triggered by system or environmental events (i.e., in the cases where agents are not responding to human prompts), their actions should then by constrained by their own identity and entitlements. It is in that case assumed that the agent itself is capable of submitting to standard authorization ceremonies resulting in them holding access tokens compliant to the various OAuth <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> and <span>[<a href="#MCP" class="cite xref">MCP</a>]</span> specifications.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-3">In the present use-case though, a user prompts an agent for some data using natural language. In order to comply, the AI agent determines that it needs to fetch some LLM-grounding data through an external tool exposed by an Model Context protocol <span>[<a href="#MCP" class="cite xref">MCP</a>]</span> compliant server. The actual underlying external API has its own access control logic and resource access policies. This non-normative example assumes that the external API responds using the Rich Authorization Request [RAR - RFC9396] method.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">The following non normative diagram (Figure 2) depicts an example of the functional interaction between a LLM-powered agent, acting as an MCP client, the MCP Server exposing a Tool of interest to the Agent and the underlying API, the protected resource:<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A.1-5">
+<pre>
++-------------------+
+|                   |                       +--------------------+                        +-----------------+
+|                   |        1) Prompt      |                    |      2) /authorize     |                 |
+|                   |----------------------&gt;|                    |-----------------------&gt;|                 |
+|                   |                       |                    |  11) /token + MCP-CODE |                 |
+|                   |                       |     MCP Client     |-----------------------&gt;|                 |
+|                   |                       |   (LLM-enabled)    |       12) TOKEN        |                 |
+|                   |10) redirect + MCP-CODE|                    |&lt;-----------------------|                 |
+|                   |----------------------&gt;|                    | 13) Call Tool +  TOKEN |                 |
+|   User Agent      |                       |                    |-----------------------&gt;|                 |                                 +-------------+
+|                   |                       |                    |                        |                 |                                 |             |
+|                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
+|                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
+|                   |                       |                    |&lt;-----------------------|                 |                                 | Backend API |
+|                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
+|                   |                       |                    |-----------------------&gt;|    MCP Server   |--------------------------------&gt;|             |---&gt; 14') (AuthZEN)
+|                   |                       +--------------------+                        |                 |                                 |             |&lt;---
+|                   |                                                                     |  (Exposed TOOL) |                                 |             |
+|                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
+|                   |&lt;--------------------------------------------------------------------|                 |&lt;--------------------------------|             |
+|                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
+|                   |--------------------------------------------------------------------&gt;|                 | WWW-Authenticate:               |             |
+|                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
+|                   |&lt;--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
+|                   |                                                                     |                 |                                 |             |
+|                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
+|                   |&lt;------------------------------------------------------------------- |                 |
+|                   |                                                                     |                 |
+|                   |                        +---------------------+                      |                 |
+|                   |    4) /authorize       |                     | 7) /token + AS-CODE  |                 |
+|                   |----------------------&gt; |    External AS      &lt;----------------------|                 |
+|                   |                        |      (IdP)          |                      |                 |
+|                   | 5) redirect + AS-CODE  |                     |      8) TOKEN        |                 |
+|                   |&lt;---------------------- |                     ----------------------&gt;|                 |
+|                   |                        |                     |                      |                 |
++-------------------+                        +---------------------+                      +-----------------+
+</pre><a href="#appendix-A.1-5" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A.1-6"><em>Figure 2: Abstract AI Agent MCP Use Case Flow with External AS</em><a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-7">As per section 2.10 Third-Party Authorization Flow of the <span>[<a href="#MCP" class="cite xref">MCP</a>]</span> specification, the MCP server acts as an authorization server, but proxies an external AS. In our use-case,<a href="#appendix-A.1-7" class="pilcrow">¶</a></p>
+<div id="preconditions">
+<section id="appendix-A.1.1">
+          <h4 id="name-preconditions">
+<a href="#appendix-A.1.1" class="section-number selfRef">A.1.1. </a><a href="#name-preconditions" class="section-name selfRef">Preconditions</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="appendix-A.1.1-1.1">
+              <p id="appendix-A.1.1-1.1.1">The LLM Agent (MCP Client) has registered as an OAuth 2.0 Client (<code>com.example.llm-agent</code>) with the MCP Server(<code>mcp.example.com</code>)<a href="#appendix-A.1.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.1.1-1.2">
+              <p id="appendix-A.1.1-1.2.1">The LLM Tool (MCP Server) has registered as an OAuth 2.0 Client (<code>4960880b83dc9</code>) with the external Enterprise IdP (<code>idp.example.com</code>)<a href="#appendix-A.1.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.1.1-1.3">
+              <p id="appendix-A.1.1-1.3.1">The External Service API is protected by the Trust Domain controlled by the External Service IdP (<code>idp.example.com</code>)<a href="#appendix-A.1.1-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.1.1-1.4">
+              <p id="appendix-A.1.1-1.4.1">We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool and underlying API.<a href="#appendix-A.1.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.1.1-1.5">
+              <p id="appendix-A.1.1-1.5.1">The backend API and the MCP Server both use the same external AS, they can use the same access token which carries both it in <code>audience</code> claim.<a href="#appendix-A.1.1-1.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="flow-details">
+<section id="appendix-A.1.2">
+          <h4 id="name-flow-details">
+<a href="#appendix-A.1.2" class="section-number selfRef">A.1.2. </a><a href="#name-flow-details" class="section-name selfRef">Flow details</a>
+          </h4>
+<p id="appendix-A.1.2-1">The following flow is based on the <span>[<a href="#MCP" class="cite xref">MCP</a>]</span> authorization flow described in its section 2.10, and augments it with a Step-Up Authorization request as described in this document:<a href="#appendix-A.1.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.2-2">1) The user initiates a prompt request on the MCP Client from the User Agent.
+2) The user is not yet authenticated, the MCP Client therefore redirects the User agent to the MCP Server's <code>/authorize</code> endpoint.
+3) The MCP Server relays the <code>authorize</code> request to the external AS, and redirects the user Agent there with an <code>authorization_code</code> grant flow.
+4) The User authenticates with the external AS and authorizes the MCP Client.
+5) The AS returns the <code>authorization_code</code> and redirects the User Agent to the MCP Server's callback.
+6) The User agent requests a token with the Code provided by the external AS.
+7) The MCP server's <code>/token</code> endpoint relays the token request to the external AS's <code>/token</code> endpoint.
+8) The MCP Server gets the <code>access_token</code> in response. It caches the <code>access_token</code> and generates a new MCP-CODE, different from the initial code provided by the external AS.
+9) The MCP Server redirects the user-agent to the MCP Client with the MCP-CODE.
+10) The User Agent presents the MCP-CODE to the MCP Client.
+11) The MCP Client requests the <code>access_token</code> from the MCP Server's <code>/token</code> endpoint.
+12) The MCP Server responds with the external AS's <code>access_token</code>, which it cached in step 8.
+13) Once ready, the MCP Client can now invoke the right MCP Server Tool, passing the <code>access_token</code> along with the request.
+14) The MCP Server makes a backend call to the underlying API. The API validates the <code>access_token</code> with the same external AS.
+14') The API resource <em>may</em> use an external Policy Decision Point via [AuthZen] to evaluate the request.
+1)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
+2)  The MCP Server relays the API Resource's response back to the MCP CLient.
+3)  The MCP Client initiates a new <code>authorize</code> PAR request with the MCP Server's <code>/authorize</code> endpoint.
+4)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.<a href="#appendix-A.1.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="mcp-client-receives-a-response-from-the-llm">
+<section id="appendix-A.1.3">
+          <h4 id="name-mcp-client-receives-a-respo">
+<a href="#appendix-A.1.3" class="section-number selfRef">A.1.3. </a><a href="#name-mcp-client-receives-a-respo" class="section-name selfRef">MCP Client receives a response from the LLM</a>
+          </h4>
+<p id="appendix-A.1.3-1">Step 13 details: MCP Client receives a directive to use the MCP Tool with a specific payload and it calls the external MCP Server Tool with a valid access token.<a href="#appendix-A.1.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.3-2">```http
+POST /Pay
+Host: tool.example.com
+Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef<a href="#appendix-A.1.3-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.3-3">to=DE02100100109307118603&amp;
+amount=123.50
+```<a href="#appendix-A.1.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="llm-tool-receives-the-request">
+<section id="appendix-A.1.4">
+          <h4 id="name-llm-tool-receives-the-reque">
+<a href="#appendix-A.1.4" class="section-number selfRef">A.1.4. </a><a href="#name-llm-tool-receives-the-reque" class="section-name selfRef">LLM Tool receives the request</a>
+          </h4>
+<p id="appendix-A.1.4-1">Step 15 details: MCP Server tool tries to call the backend Service APIs with the Access Token received using the JWT Bearer Authentication scheme and is issues an authentication challenge.<a href="#appendix-A.1.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.4-2">```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="requested_authorization", error_description="A new authorization request is needed"<a href="#appendix-A.1.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.4-3">{
+  "decision": false,
+  "context": {
+    "error_msg": "The user must be authorized to initiate payment for Merchant A ",
+    "details": {
+      "method": "urn:ietf:params:oauth:grant-ext:rar",
+      "authorization_details": [
+        {
+            "type": "payment_initiation",
+            "actions": [
+              "initiate",
+              "status",
+              "cancel"
+            ],
+            "locations": [
+              "https://example.com/payments"
+            ],
+            "instructedAmount": {
+              "currency": "EUR",
+              "amount": "123.50"
+            },
+            "creditorName": "Merchant A",
+            "creditorAccount": {
+              "iban": "DE02100100109307118603"
+            },
+            "remittanceInformationUnstructured": "Ref Number Merchant"
+        }
+      ]
+    }
+  }
+}
+```<a href="#appendix-A.1.4-3" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="appendix-A.1.4-4.1">
+              <p id="appendix-A.1.4-4.1.1">Note: The methods used by MCP Clients and Agents to discover the right Tool(s) to use is out of scope of this specification<a href="#appendix-A.1.4-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="appendix-A.1.4-5">The LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.<a href="#appendix-A.1.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="llm-tool-obtains-the-accesstoken-from-the-authorization-server-protecting-the-api">
+<section id="appendix-A.1.5">
+          <h4 id="name-llm-tool-obtains-the-access">
+<a href="#appendix-A.1.5" class="section-number selfRef">A.1.5. </a><a href="#name-llm-tool-obtains-the-access" class="section-name selfRef">LLM Tool obtains the access_token from the Authorization Server protecting the API</a>
+          </h4>
+<p id="appendix-A.1.5-1">Step 7 details:<a href="#appendix-A.1.5-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.5-2"><code>http
+GET /oauth2/authorize?response_type=code
+   &amp;client_id=eb1e27d2df8b7
+   &amp;state=af0ifjsldkj
+   &amp;redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
+   &amp;code_challenge_method=S256
+   &amp;code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
+   &amp;authorization_details=%5B%7B%22type%22:%20%22payment_initiation
+   %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
+   %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
+   %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
+   %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
+   %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
+   %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
+   %20Merchant%22%7D%5D
+Host: idp.example.com
+</code><a href="#appendix-A.1.5-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="appendix-A.1.5-3.1">
+              <p id="appendix-A.1.5-3.1.1">The User's authentication follows the flows described in the Rich Authorization Request <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> specification.<a href="#appendix-A.1.5-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="appendix-A.1.5-4">The MCP Server Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.<a href="#appendix-A.1.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Jean-François Lombardo</span></div>
+<div dir="auto" class="left"><span class="org">AWS</span></div>
+<div dir="auto" class="left"><span class="country-name">Canada</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:jeffsec@amazon.com" class="email">jeffsec@amazon.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Alexandre Babeanu</span></div>
+<div dir="auto" class="left"><span class="org">IndyKite</span></div>
+<div dir="auto" class="left"><span class="country-name">Canada</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:alex.babeanu@indykite.com" class="email">alex.babeanu@indykite.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

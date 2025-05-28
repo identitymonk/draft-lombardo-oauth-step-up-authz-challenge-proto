@@ -104,7 +104,10 @@ informative:
       role: editor
       org: Scarfone Cybersecurity
     date: 2014
-
+  MCP:
+    title: Model Context Protocol
+    target: https://modelcontextprotocol.io/specification/2025-03-26/basic
+    org: Anthropic
 
 
 --- abstract
@@ -238,7 +241,8 @@ The following is a non-normative example of a WWW-Authenticate header with the e
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="insufficient_user_authorization",
+error_description="A different authorization level is required"
 
 {
   "decision": false,
@@ -255,7 +259,8 @@ WWW-Authenticate: Bearer error="insufficient_user_authorization", error_descript
 The following is a non-normative example of a compliant HTTP response relaying the response of a [D-OpenID-AuthZEN] compliant policy decision point (PDP) to the requesting client:
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="insufficient_user_authorization",
+error_description="A different authorization level is required"
 
 {
   "decision": false,
@@ -300,7 +305,8 @@ The following is a non-normative example of a compliant response where the resou
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires PAR."
+WWW-Authenticate: Bearer error="requested_authorization",
+error_description="Requires PAR."
 
 {
   "method": "urn:ietf:params:oauth:grant-ext:par",
@@ -312,7 +318,8 @@ The following is a non-normative example of a compliant response where the resou
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires RAR."
+WWW-Authenticate: Bearer error="requested_authorization",
+error_description="Requires RAR."
 
 {
   "method": "urn:ietf:params:oauth:grant-ext:rar",
@@ -402,51 +409,90 @@ This document has no IANA actions.
 
 ## LLM Agent accessing a service via an LLM Tool on behalf of a user
 
-LLM agents, including those based on large language models (LLMs), are designed to manage user context, memory, and interaction state across multi-turn conversations. To perform complex tasks, these agents often integrate with external systems such as SaaS applications, internal services, or enterprise data sources. When accessing these systems, the agent operates on behalf of the end user, and its actions are constrained by the user’s identity, role, and permissions as defined by the enterprise. This ensures that all data access and operations are properly scoped and compliant with organizational access controls.
+LLM agents, including those based on large language models (LLMs), are designed to manage user context, memory, and interaction state across multi-turn conversations. To perform complex tasks, these agents often integrate with external systems such as SaaS applications, internal services, or enterprise data sources. When accessing these systems, the agent MAY operate on behalf of an end user; its actions are then constrained by the user’s identity, role, and permissions as defined by the enterprise. This ensures that all data access and operations are properly scoped and compliant with organizational access controls.
 
-When using an LLM Tool, the LLM Agent is consumming an external API which has its own access control logic and policies on what conditions should be met for the access to the resources and the generation of the enriched information that the AI Agent can send return to the user who prompted it, with potential support of the LLM. Some access control conditions might require some authorization details as defined into, whithout being limited to, the examples of Rich Authorization Request [RFC9396].
+In the case of autonomous agents or agents triggered by system or environmental events (i.e., in the cases where agents are not responding to human prompts), their actions should then by constrained by their own identity and entitlements. It is in that case assumed that the agent itself is capable of submitting to standard authorization ceremonies resulting in them holding access tokens compliant to the various OAuth [RFC6749] and [MCP] specifications.
 
-A non normative example of such interaction would be at the functional level:
+In the present use-case though, a user prompts an agent for some data using natural language. In order to comply, the AI agent determines that it needs to fetch some LLM-grounding data through an external tool exposed by an Model Context protocol [MCP] compliant server. The actual underlying external API has its own access control logic and resource access policies. This non-normative example assumes that the external API responds using the Rich Authorization Request [RAR - RFC9396] method.
 
-    +----------+
-    |          |                  +--------------+
-    |          |---(1) prompt --->|              |                                                                                      +--------------+
-    |          |                  |              |-----------------------------------(2) LLM request ---------------------------------->|              |
-    |          |                  |              |                                                                                      |              |
-    |          |                  |              |<-----------------------------------(3) Tool usage -----------------------------------|              |
-    |  User    |                  |              |                        +--------------+                                              |              |
-    |          |                  |              |---(4) tool request --->|              |                                              |              |
-    |          |                  |              |                        |              |                           +--------------+   |              |
-    |          |                  |              |                        |              |---(5) service request --->|              |   |              |
-    |          |                  |     LLM      |                        |   LLM Tool   |                           | Service APIs |   |      LLM     |
-    |          |                  |    Agent     |                        |              |<--(6) service response ---|              |   |              |
-    |          |                  |              |                        |              |                           +--------------+   |              |
-    |          |                  |              |<--(7) tool response ---|              |                                              |              |
-    |          |                  |              |                        +--------------+                                              |              |
-    |          |                  |              |                                                                                      |              |
-    |          |                  |              |-----------------------------------(8) LLM request ---------------------------------->|              |
-    |          |                  |              |                                                                                      |              |
-    |          |                  |              |<----------------------------------(9) LLM outcome -----------------------------------|              |
-    |          |                  |              |                                                                                      +--------------+
-    |          |<-(10) response --|              |
-    |          |                  +--------------+
-    +----------+
+The following non normative diagram (Figure 2) depicts an example of the functional interaction between a LLM-powered agent, acting as an MCP client, the MCP Server exposing a Tool of interest to the Agent and the underlying API, the protected resource:
 
-_Figure 2: Abstract AI Agent Use Case Flow_
+```text
++-------------------+
+|                   |                       +--------------------+                        +-----------------+
+|                   |        1) Prompt      |                    |      2) /authorize     |                 |
+|                   |---------------------->|                    |----------------------->|                 |
+|                   |                       |                    |  11) /token + MCP-CODE |                 |
+|                   |                       |     MCP Client     |----------------------->|                 |
+|                   |                       |   (LLM-enabled)    |       12) TOKEN        |                 |
+|                   |10) redirect + MCP-CODE|                    |<-----------------------|                 |
+|                   |---------------------->|                    | 13) Call Tool +  TOKEN |                 |
+|   User Agent      |                       |                    |----------------------->|                 |                                 +-------------+
+|                   |                       |                    |                        |                 |                                 |             |
+|                   |                       |                    |   16) HTTP 403         |                 |                                 |             |
+|                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
+|                   |                       |                    |<-----------------------|                 |                                 | Backend API |
+|                   |                       |                    |   17) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
+|                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 14') (AuthZEN)
+|                   |                       +--------------------+                        |                 |                                 |             |<---
+|                   |                                                                     |  (Exposed TOOL) |                                 |             |
+|                   |                   3) Redirect to External AS                        |                 |       15) HTTP 403              |             |
+|                   |<--------------------------------------------------------------------|                 |<--------------------------------|             |
+|                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
+|                   |-------------------------------------------------------------------->|                 | WWW-Authenticate:               |             |
+|                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
+|                   |<--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
+|                   |                                                                     |                 |                                 |             |
+|                   |              18) Redirect to External AS - back to 4)               |                 |                                 +-------------+
+|                   |<------------------------------------------------------------------- |                 |
+|                   |                                                                     |                 |
+|                   |                        +---------------------+                      |                 |
+|                   |    4) /authorize       |                     | 7) /token + AS-CODE  |                 |
+|                   |----------------------> |    External AS      <----------------------|                 |
+|                   |                        |      (IdP)          |                      |                 |
+|                   | 5) redirect + AS-CODE  |                     |      8) TOKEN        |                 |
+|                   |<---------------------- |                     ---------------------->|                 |
+|                   |                        |                     |                      |                 |
++-------------------+                        +---------------------+                      +-----------------+
+```
+_Figure 2: Abstract AI Agent MCP Use Case Flow with External AS_
+
+As per section 2.10 Third-Party Authorization Flow of the [MCP] specification, the MCP server acts as an authorization server, but proxies an external AS. In our use-case,
 
 ### Preconditions
 
-* The LLM Agent has a registered OAuth 2.0 Client (`com.example.llm-agent`) with the Enterprise IdP (`idp.example.com`)
-* The LLM Tool has a registered OAuth 2.0 Client (`4960880b83dc9`) with the Enterprise IdP (`idp.example.com`)
-* The LLM Tool has a registered OAuth 2.0 Client (`eb1e27d2df8b7`) with External Service IdP (`authorization-server.saas.net`)
-* The External Service APIs is protected by the Trust Domain controlled by the External Service IdP (`authorization-server.saas.net`)
-* User already authenticated at the Enterprise IdP (`idp.example.com`) and delegated its authorization to the LLM Agent
-* The LLM Agent is in possession of an Identity Token, an Access Token, and a Refresh Token issued by the Enterprise IdP (`idp.example.com`)
-* We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool
+* The LLM Agent (MCP Client) has registered as an OAuth 2.0 Client (`com.example.llm-agent`) with the MCP Server(`mcp.example.com`)
+* The LLM Tool (MCP Server) has registered as an OAuth 2.0 Client (`4960880b83dc9`) with the external Enterprise IdP (`idp.example.com`)
+* The External Service API is protected by the Trust Domain controlled by the External Service IdP (`idp.example.com`)
+* We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool and underlying API.
+* The backend API and the MCP Server both use the same external AS, they can use the same access token which carries both it in `audience` claim.
 
-### LLM Agent receives a response fromn the LLM
+### Flow details
+The following flow is based on the [MCP] authorization flow described in its section 2.10, and augments it with a Step-Up Authorization request as described in this document:
 
-LLM Agent receives a directive to use the LLM Tool with a specific payload and it calls the external LLM Tool provided by an Enterprise internal IT with a valid access token.
+1) The user initiates a prompt request on the MCP Client from the User Agent.
+2) The user is not yet authenticated, the MCP Client therefore redirects the User agent to the MCP Server's `/authorize` endpoint.
+3) The MCP Server relays the `authorize` request to the external AS, and redirects the user Agent there with an `authorization_code` grant flow.
+4) The User authenticates with the external AS and authorizes the MCP Client.
+5) The AS returns the `authorization_code` and redirects the User Agent to the MCP Server's callback.
+6) The User agent requests a token with the Code provided by the external AS.
+7) The MCP server's `/token` endpoint relays the token request to the external AS's `/token` endpoint.
+8) The MCP Server gets the `access_token` in response. It caches the `access_token` and generates a new MCP-CODE, different from the initial code provided by the external AS.
+9) The MCP Server redirects the user-agent to the MCP Client with the MCP-CODE.
+10) The User Agent presents the MCP-CODE to the MCP Client.
+11) The MCP Client requests the `access_token` from the MCP Server's `/token` endpoint.
+12) The MCP Server responds with the external AS's `access_token`, which it cached in step 8.
+13) Once ready, the MCP Client can now invoke the right MCP Server Tool, passing the `access_token` along with the request.
+14) The MCP Server makes a backend call to the underlying API. The API validates the `access_token` with the same external AS.
+14') The API resource _may_ use an external Policy Decision Point via [AuthZen] to evaluate the request.
+1)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
+2)  The MCP Server relays the API Resource's response back to the MCP CLient.
+3)  The MCP Client initiates a new `authorize` PAR request with the MCP Server's `/authorize` endpoint.
+4)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.
+
+### MCP Client receives a response from the LLM
+
+Step 13 details: MCP Client receives a directive to use the MCP Tool with a specific payload and it calls the external MCP Server Tool with a valid access token.
 
 ```http
 POST /Pay
@@ -459,7 +505,7 @@ amount=123.50
 
 ### LLM Tool receives the request
 
-LLM tool tries to call the service with the External Service APIs with the Access Token received using the JWT Bearer Authentication scheme (5) and is issued an authentication challenge.
+Step 15 details: MCP Server tool tries to call the backend Service APIs with the Access Token received using the JWT Bearer Authentication scheme and is issues an authentication challenge.
 
 ```http
 HTTP/1.1 403 Forbidden
@@ -497,66 +543,13 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="A n
   }
 }
 ```
-> Note: How agents discover available tools is out of scope of this specification
+> Note: The methods used by MCP Clients and Agents to discover the right Tool(s) to use is out of scope of this specification
 
-LLM Agent fetches the external tool resource's `OAuth 2.0 Protected Resource Metadata` per [RFC9728] to dynamically discover an authorization server that can issue an access token for the resource.
+The LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
 
-```http
-GET /.well-known/oauth-protected-resource
-Host: api.saas.net
-Accept: application/json
+### LLM Tool obtains the access_token from the Authorization Server protecting the API
 
-HTTP/1.1 200 Ok
-Content-Type: application/json
-
-{
-  "resource": "https://api.saas.net/",
-  "authorization_servers": [ "https://authorization-server.saas.net" ],
-  "bearer_methods_supported": [
-    "header",
-    "body"
-  ],
-  "scopes_supported": [
-    "agent.tools.read",
-    "agent.tools.write"
-  ],
-  "resource_documentation": "https://idp.saas.net/tools/resource_documentation.html"
-}
-```
-
-LLM Agent discovers the Authorization Server configuration per {{RFC8414}}.
-
-```http
-GET /.well-known/oauth-authorization-server
-Host: authorization-server.saas.net
-Accept: application/json
-
-HTTP/1.1 200 Ok
-Content-Type: application/json
-
-{
-  "issuer": "https://authorization-server.saas.net",
-  "authorization_endpoint": "https://authorization-server.saas.net/oauth2/authorize",
-  "token_endpoint": "https://authorization-server.saas.net/oauth2/token",
-  "jwks_uri": "https://authorization-server.saas.net/oauth2/keys",
-  "registration_endpoint": "authorization-server.saas.net/oauth2/register",
-  "scopes_supported": [
-    "agent.read", "agent.write"
-  ],
-  "response_types_supported": [
-    "code"
-  ],
-  "grant_types_supported": [
-    "authorization_code", "refresh_token"
-  ]
-}
-```
-
-LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
-
-### LLM Tool obtains a set of token from Authorization Server protecting the API
-
-The LLM tool redirects the LLM Agent for an authorization request:
+Step 7 details:
 
 ```http
 GET /oauth2/authorize?response_type=code
@@ -573,14 +566,12 @@ GET /oauth2/authorize?response_type=code
    %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
    %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
    %20Merchant%22%7D%5D
-Host: authorization-server.saas.net
+Host: idp.example.com
 ```
 
-> We don't describe the wy the user is authenticated as it follows Rich Authorization Request [RFC9396]
+> The User's authentication follows the flows described in the Rich Authorization Request [RFC9396] specification.
 
-The LLM Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.
-
-The LLM Tool can then make a new request to the External Service APIs (5). If it can meet the APIs Access Control requirement, the flow will follow with a response (6).
+The MCP Server Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.
 
 # Acknowledgments
 {:numbered="false"}

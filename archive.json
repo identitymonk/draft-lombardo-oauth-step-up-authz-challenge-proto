@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-27T01:36:53.729364+00:00",
+  "timestamp": "2025-05-29T01:38:17.927450+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -62,9 +62,17 @@
       "labels": [],
       "body": "I'd recommend pulling out each point of the security considerations into it's own sub-section. This will make it clearer to the reader.\n\nAlso, the point that the enterprise is \"leaking\" authorization policy into the response to the client is something that I think should be more clearly stated. Or maybe call out that if this is a concern plan to use the \"PAR\" extension. ",
       "createdAt": "2025-05-26T14:44:08Z",
-      "updatedAt": "2025-05-26T14:44:08Z",
+      "updatedAt": "2025-05-28T02:00:27Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Right on @gffletch , I thought about the same thing about PAR.\n\nBut a PAR starting at the RP would even better. Might worth discussing as a separate proposal maybe?",
+          "createdAt": "2025-05-28T02:00:26Z",
+          "updatedAt": "2025-05-28T02:00:26Z"
+        }
+      ]
     },
     {
       "number": 3,
@@ -79,6 +87,38 @@
       "body": "Feedback from @aaronpk\n\n> Justify why a new spec and one the 403 and not a 401.\nHere we expect the token to have gone through conventional OAuth2 validation first before a decision is made on the content of the claims, including the authorization_details",
       "createdAt": "2025-05-26T20:39:21Z",
       "updatedAt": "2025-05-26T20:39:21Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOOIDCrM64hTHH",
+      "title": "Adding a FAPI 2.0 / RAR Use case",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/5",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-05-28T01:58:48Z",
+      "updatedAt": "2025-05-28T01:58:48Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOOIDCrM64hTNM",
+      "title": "Adding a SMART on FHIR / RAR use case",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/6",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-05-28T01:59:04Z",
+      "updatedAt": "2025-05-28T01:59:04Z",
       "closedAt": null,
       "comments": []
     }
@@ -111,6 +151,265 @@
       },
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 4,
+      "id": "PR_kwDOOIDCrM6X3yVb",
+      "title": "Alex's updates",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/4",
+      "state": "OPEN",
+      "author": "baboulebou",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- Fixes to various part of the text, clarifications.\r\n- Changed the LLM example to use MCP.",
+      "createdAt": "2025-05-28T00:32:27Z",
+      "updatedAt": "2025-05-28T15:00:49Z",
+      "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "baseRefName": "main",
+      "baseRefOid": "ae377152869f17b239569131a100af09c9a3a863",
+      "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "headRefName": "alex-review-1",
+      "headRefOid": "b3ad0ce030d326f055c6b01e11167e88d85d2fe3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOOIDCrM6rW8bo",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "First path review",
+          "createdAt": "2025-05-28T12:55:34Z",
+          "updatedAt": "2025-05-28T13:22:56Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "We need to check why this is a change",
+              "createdAt": "2025-05-28T12:55:34Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "I ponder if we should not rename `insufficient_delegated_authorization` as `insufficient_authorization` to simplify as the other error code",
+              "createdAt": "2025-05-28T12:58:13Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "oxford comma",
+              "createdAt": "2025-05-28T12:59:43Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 64,
+              "body": "- `the methods by which`\r\n- We might need to rework the sentence `this document rather describes the methoids by which the resource provider can signal to the client the type(s) of authorization garantees it is expected to obtain from the authorization server for the given request.`",
+              "createdAt": "2025-05-28T13:02:48Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 76,
+              "body": "The Request does not have an internal authorization state requirements. It is fixed by the RP with the help of a PDP (optionally) so it is really `the` and not `its`",
+              "createdAt": "2025-05-28T13:09:04Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 85,
+              "body": "We should have a complete see section X - below is too vague in guidance",
+              "createdAt": "2025-05-28T13:10:03Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "see comment on simplify this error code",
+              "createdAt": "2025-05-28T13:10:25Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 90,
+              "body": "Should we not replace the `SHOULD` here with a `SHALL`",
+              "createdAt": "2025-05-28T13:11:07Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 109,
+              "body": "As we removed the diagram with `<payload>` we can switch to the formal `HTTP body payload` mention here",
+              "createdAt": "2025-05-28T13:16:15Z",
+              "updatedAt": "2025-05-28T13:22:56Z"
+            },
+            {
+              "originalPosition": 118,
+              "body": "We need to do a pass on all MUST / SHOULD and other RFC keywords for the usage for of uppercase representation",
+              "createdAt": "2025-05-28T13:17:10Z",
+              "updatedAt": "2025-05-28T13:22:57Z"
+            },
+            {
+              "originalPosition": 129,
+              "body": "As we have the AuthZEN example after this one, maybe we can remove this one",
+              "createdAt": "2025-05-28T13:18:25Z",
+              "updatedAt": "2025-05-28T13:22:57Z"
+            },
+            {
+              "originalPosition": 170,
+              "body": "We should ensure this message for this error code is also AuthZEN formatted",
+              "createdAt": "2025-05-28T13:19:24Z",
+              "updatedAt": "2025-05-28T13:22:57Z"
+            },
+            {
+              "originalPosition": 394,
+              "body": "While markdown resolves the numbering properly, it might not be the case of other RFC format - we need to solve that here",
+              "createdAt": "2025-05-28T13:22:30Z",
+              "updatedAt": "2025-05-28T13:22:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rYW66",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:14:14Z",
+          "updatedAt": "2025-05-28T14:14:14Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "I agree !",
+              "createdAt": "2025-05-28T14:14:14Z",
+              "updatedAt": "2025-05-28T14:14:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rYbh4",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:19:29Z",
+          "updatedAt": "2025-05-28T14:19:29Z",
+          "comments": [
+            {
+              "originalPosition": 64,
+              "body": "Done, check for new commit.",
+              "createdAt": "2025-05-28T14:19:29Z",
+              "updatedAt": "2025-05-28T14:19:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rYdx-",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:22:04Z",
+          "updatedAt": "2025-05-28T14:22:05Z",
+          "comments": [
+            {
+              "originalPosition": 76,
+              "body": "\"its\" refers to the \"Resource Server\" coming right after the \",\". I reworked the sentence, should be clearer now.\r\n",
+              "createdAt": "2025-05-28T14:22:05Z",
+              "updatedAt": "2025-05-28T14:22:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rYi_B",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:28:14Z",
+          "updatedAt": "2025-05-28T14:28:15Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "Done.",
+              "createdAt": "2025-05-28T14:28:14Z",
+              "updatedAt": "2025-05-28T14:28:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rYj2w",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:29:16Z",
+          "updatedAt": "2025-05-28T14:29:16Z",
+          "comments": [
+            {
+              "originalPosition": 118,
+              "body": "done",
+              "createdAt": "2025-05-28T14:29:16Z",
+              "updatedAt": "2025-05-28T14:29:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rY1ua",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:50:28Z",
+          "updatedAt": "2025-05-28T14:50:29Z",
+          "comments": [
+            {
+              "originalPosition": 129,
+              "body": "Well I think it helps clarify things, may be redundant but not quite. It should an actual AuthZEN response (from the authzen spec), wanted to show an actual example.",
+              "createdAt": "2025-05-28T14:50:29Z",
+              "updatedAt": "2025-05-28T14:50:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6rY7Zp",
+          "commit": {
+            "abbreviatedOid": "fe13187"
+          },
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-05-28T14:56:57Z",
+          "updatedAt": "2025-05-28T14:56:57Z",
+          "comments": [
+            {
+              "originalPosition": 170,
+              "body": "done",
+              "createdAt": "2025-05-28T14:56:57Z",
+              "updatedAt": "2025-05-28T14:56:57Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

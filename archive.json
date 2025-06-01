@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-29T01:38:17.927450+00:00",
+  "timestamp": "2025-06-01T01:54:20.514013+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -119,6 +119,22 @@
       "body": "",
       "createdAt": "2025-05-28T01:59:04Z",
       "updatedAt": "2025-05-28T01:59:04Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOOIDCrM64zbrW",
+      "title": "Support for `method` of type `urn:ietf:params:oauth:grant-type:token-exchange`",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/7",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "As partially discussed in #2 and as part of all the discussions on Agent as actor in the process of asking a step-up of the authorization, we could add from the beginning the support of the OAuth2 Token Exchange flow.\n\nThis could ease the path for https://datatracker.ietf.org/doc/draft-oauth-ai-agents-on-behalf-of-user/",
+      "createdAt": "2025-05-29T14:13:47Z",
+      "updatedAt": "2025-05-29T14:13:47Z",
       "closedAt": null,
       "comments": []
     }

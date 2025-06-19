@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-06-01T01:54:20.514013+00:00",
+  "timestamp": "2025-06-19T01:41:07.773106+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -135,6 +135,22 @@
       "body": "As partially discussed in #2 and as part of all the discussions on Agent as actor in the process of asking a step-up of the authorization, we could add from the beginning the support of the OAuth2 Token Exchange flow.\n\nThis could ease the path for https://datatracker.ietf.org/doc/draft-oauth-ai-agents-on-behalf-of-user/",
       "createdAt": "2025-05-29T14:13:47Z",
       "updatedAt": "2025-05-29T14:13:47Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOOIDCrM679-mp",
+      "title": "Refinement of 401 and 403 responses",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/8",
+      "state": "OPEN",
+      "author": "yaron-zehavi",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Instructive\n=======\n\nHTTP/1.1 401 Unauthorized\nWWW-Authenticate: error=\"new_authorization_needed\",\nauthorization_details=[{\"type\":...,...},...],\nscope=\"...\"\n\nDiscussion:\n\n- Response can use WWW-Authenticate header as in step-up-authentication draft\n- acr_values and max_age already covered by https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements but can be combined together in one response following current draft\n- authorization_details are rather verbose, but will work as header size in not limited\n- Client extensions are resulting token claims, not request parameters (no ccr_values req parm like acr_values). so belong to the informative error response\n\nInformative\n========\n\nHTTP/1.1 403 Forbidden\n\n**Missing access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - email\",\n        \"details\": {\n            [{\n                    \"loc\": \"/email\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t\t}]\n        }\n    }\n}\n```\n\nDiscussion:\n- JSON response body as it's not a WWW-Authenticate instruction\n- Propose to employ ASC syntax to express required claims and values: https://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html#name-example\n- If confidentiality considerations prevent sharing detailed data then details block is redacted or omitted\n",
+      "createdAt": "2025-06-17T13:48:10Z",
+      "updatedAt": "2025-06-18T08:55:36Z",
       "closedAt": null,
       "comments": []
     }

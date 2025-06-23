@@ -20,7 +20,7 @@ venue:
   mail: "oauth@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/oauth/"
   github: "identitymonk/draft-lombardo-oauth-step-up-authz-challenge"
-  latest: "https://identitymonk.github.io/draft-lombardo-oauth-step-up-au   thz-challenge/draft-lombardo-oauth-step-up-authz-challenge-proto.html"
+  latest: "https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge/draft-lombardo-oauth-step-up-authz-challenge-proto.html"
 
 author:
  -
@@ -38,7 +38,7 @@ author:
 
  -
     fullname: Yaron Zehavi
-    organization: Raiffeisen Bank International 
+    organization: Raiffeisen Bank International
     country: Austria
     email: yaron.zehavi@rbinternational.com
 
@@ -418,7 +418,7 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 
 ## Scope
 
-This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4. 
+This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4.
 
 This specification does not attempt to define the mechanics by which extended authorization requests are processed and vlidated by the authorization server.
 

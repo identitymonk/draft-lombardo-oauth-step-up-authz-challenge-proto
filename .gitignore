@@ -21,3 +21,4 @@ draft-lombardo-oauth-client-extension-claims.xml
 package-lock.json
 report.xml
 !requirements.txt
+.idea

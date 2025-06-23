@@ -36,6 +36,18 @@ author:
     country: Canada
     email: alex.babeanu@indykite.com
 
+ -
+    fullname: Yaron Zehavi
+    organization: Raiffeisen Bank International 
+    country: Austria
+    email: yaron.zehavi@rbinternational.com
+
+ -
+    fullname: George Fletcher
+    organization: Practical Identity
+    country: United States of America
+    email: george@practicalidentity.com
+
 normative:
   RFC7519: # JWT
   RFC6749: # OAuth 2.0 Framework
@@ -59,6 +71,7 @@ normative:
   RFC9396: # Rich Authorization Request
   RFC9126: # Pushed Authorization Request
   RFC9101: # JWT-Secured Authorization Request
+  RFC7517: # JSON Web Key
 
 informative:
   RFC7662: # Introspection
@@ -66,6 +79,7 @@ informative:
   RFC9728: # OAuth 2.0 Protected Resource Metadata
   RFC8414: # OAuth2 Authorization Server Metadata
   RFC9449: # DPoP
+  I-D.ietf-oauth-v2-1: # OAuth 2.1
   I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
   XACML:
     title: eXtensible Access Control Markup Language (XACML) Version 1.1
@@ -104,9 +118,25 @@ informative:
       role: editor
       org: Scarfone Cybersecurity
     date: 2014
+  FAPI2.0-Security-Profiles:
+    title: FAPI 2.0 Security Profile
+    target: https://openid.net/specs/fapi-2_0-security-02.html
+    author:
+    - name: Dr Daniel Fett
+      role: editor
+      org: Authlete
+    - name: Dave Tonge
+      role: editor
+      org: Moneyhub Financial Technology
+    - name: Joseph Heenan
+      role: editor
+      org: Authlete
+  hl7.fhir.uv.smart-app-launch:
+    title: HL7 FHIR SMART App Launch
+    target: https://www.hl7.org/fhir/smart-app-launch/app-launch.html#obtain-authorization-code
   MCP:
     title: Model Context Protocol
-    target: https://modelcontextprotocol.io/specification/2025-03-26/basic
+    target: https://modelcontextprotocol.io/specification/2025-06-18/basic
 
 
 --- abstract
@@ -119,9 +149,9 @@ the access token of the current request does not meet its authorization requirem
 
 # Introduction
 
-In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known a provisioning time. Although that approach is viable in many situations, it falls short in several important circumstances. Consider, for instance, a FAPI 2.0 or SMART on FHIR regulated API requiring peculiar client authentication mechanism to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.
+In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known a provisioning time. [RFC9470] helped improve the feedback a resource server can provide to a client in case the user authentication method, authentication class, or the freshness of the authentication event did not meet the requirements expexted by the resource server. Although those approaches are viable in many situations, it falls short in several important circumstances, for instance, in [FAPI2.0-Security-Profiles] or [hl7.fhir.uv.smart-app-launch] regulated APIs when they require peculiar client authentication mechanisms to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.
 
-This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with a new error codes, `insufficient_delegated_authorization` and `requested_authorization`, which can be used by resource servers to signal to clients that the authorization delegation represented by the access token presented with the request does not meet the authorization requirements of the resource server. This document also introduces associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
+This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with a new error codes, `failed_authorization` and `insufficient_authorization`, which can be used by resource servers to signal to clients that the authorization delegation represented by the access token presented with the request does not meet the authorization requirements of the resource server. This document also introduces associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
 
 The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Auhtorization Request [RFC9396], OAuth 2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured Authorization Request [RFC9101] for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.
 
@@ -170,6 +200,8 @@ _Figure 1: Abstract Protocol Flow_
 5. The client repeats the request from step 1, presenting the newly obtained access token.
 6. The resource server finds that the authorization details, grant flow or client authentication mechanism used during the acquisition of the new access token complies with its requirements and returns the representation of the requested protected resource.
 
+Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles] and section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch].
+
 The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
 
 This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes how the resource provider tells the client what type of authorization it needs to get from the authorization server for a request.
@@ -188,11 +220,11 @@ The resource server responds with a `403` HTTP status code using the Bearer auth
 
 This specification introduces two new error code values for this challenge and other OAuth authentication schemes, as defined in OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470]:
 
-`insufficient_delegated_authorization`:
-: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. It is up to the client to decide what to perform next; some further implementation-specific details are provided in the payload of the response (see below).
+`failed_authorization`:
+: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. It is up to the client to decide what to perform next; some further implementation-specific details MAY be provided in the payload of the response.
 
-`requested_authorization`:
-: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided a detailed standard response that describes exactly which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client is expected to then initiate new ceremonies with the authorization server, that comply with the stated resource requirements.
+`insufficient_authorization`:
+: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided a detailed standard response that describes exactly which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
 
 Note: the logic through which the resource server determines that the current request does not meet the authorization state requirements of the protected resource, and associated functionality (such as expressing, deploying and publishing such requirements), is out of scope for this document.
 
@@ -205,9 +237,11 @@ This document specifies that all compliant HTTP responses must contain a payload
 
 The payload is expected to be a JSON object, the details of which are provided in the following sections.
 
-### `insufficient_delegated_authorization` Error
+### `failed_authorization` Error
 
-If the error code `insufficient_delegated_authorization` is used, then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that is set to `false` and MUST include as part of the response a `context` object. The `context` object should then include the following properties:
+If the error code `failed_authorization` is used, the description field of the `WWW-Authenticate` HTTP Header MUST be set to `The authorization level is not met`.
+
+Then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that MUST be set to `false` and MUST include as part of the response a `context` object. The `context` object SHOULD then include the following properties:
 
 error_msg:
 : _REQUIRED_ - a string representing a human readable justification of the resource provider access control leading to a `deny` of the request.
@@ -226,11 +260,11 @@ expected_values:
 pdp_message:
 : _OPTIONAL_ - a valid JSON [RFC8259] structure representing the error details the format of the policy decision point (PDP) that is the access authority for the resource provider. If the PDP is [D-OpenID-AuthZEN] compliant, then the `pdp_message` MAY relay the PDP response `context` object.
 
-The following is a non-normative example of a WWW-Authenticate header with the error code `insufficient_delegated_authorization` and associated payload:
+The following is a non-normative example of a WWW-Authenticate header with the error code `failed_authorization` and associated payload:
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="failed_authorization", error_description="The authorization level is not met"
 
 {
   "decision": false,
@@ -249,7 +283,7 @@ The following is a non-normative example of a compliant HTTP response relaying t
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_user_authorization", error_description="A different authorization level is required"
+WWW-Authenticate: Bearer error="failed_authorization", error_description="The authorization level is not met"
 
 {
   "decision": false,
@@ -273,9 +307,11 @@ WWW-Authenticate: Bearer error="insufficient_user_authorization", error_descript
 
 The format of the `pdp_message` element is left implementation specific and non-normative; it should be negotiated and agreed upon by the client and resource server. Nevertheless usage of open standards is recommended, for example the usage of [D-OpenID-AuthZEN] payloads wherever possible.
 
-### `requested_authorization` Error
+### `insufficient_authorization` Error
 
-If the error code `requested_authorization` is used, the HTTP payload MUST be a valid [AuthZEN] compliant JSON [RFC8259] structure wich will include:
+If the error code `insufficient_authorization` is used, the description field of the `WWW-Authenticate` HTTP Header MUST be set to `The authorization level requires more details`.
+
+Then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that MUST be set to `false` and MUST include as part of the response a `context` object. The `context` object SHOULD then include the following properties:
 
 method:
 : _REQUIRED_ - The value of this element MUST be an absolute URI that can be registered with IANA. It SHOULD support present, future or custom values. If IANA registered URIs are used, then their meaning and semantics should be respected and used as defined in the registry. This specification recognizes primarily the values `urn:ietf:params:oauth:grant-ext:rar` defined by the Rich Authorization Request [RFC9396] specification and `urn:ietf:params:oauth:grant-ext:par` defined through the Pushed Authorization Request [RFC9126] specification.
@@ -286,20 +322,21 @@ authorization_details:
 : _OPTIONAL_ -  in JSON notation, an array of objects as defined in section 2 of Rich Authorization Request [RFC9396]
 
 jar:
-: _OPTIONAL_ - a JSON Web Token (JWT) [RFC7519], which JWT Claims Set holds the JSON-encoded OAuth 2.0 authorization request parameters as defined in section 2.1 of JWT-Secured Authorization Request [RFC9101]
-
-reference:
-: _OPTIONAL_ - an absolute URI that references the set of parameters comprising an OAuth 2.0 authorization request in a form of a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101]
+: _OPTIONAL_ - a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101]. In this case, the Request Object MUST contain the claim `iss` set to the Resource Provider and the claim `jwks_uri` to expose its signing keys in JSON Web Key format [RFC7517] through a dedicated dedicated URI.
 
 The following is a non-normative example of a compliant response where the resource server requests a PAR authorization ceremony:
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires PAR."
+WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level requires more details"
+
 
 {
-  "method": "urn:ietf:params:oauth:grant-ext:par",
-  "reference": "https://tfp.example.org/request.jwt/GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
+  "decision": false,
+  "context": {
+    "method": "urn:ietf:params:oauth:grant-ext:par",
+    "jar": "eyJraWQiOiI3ZjczNWM5Ni0xMzg5LTQ1ODQtOWM5Zi01ZDg2MWJiYzU5YmIiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3JwLmV4YW1wbGUuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcy5leGFtcGxlLmNvbSIsInJlc3BvbnNlX3R5cGUiOiJjb2RlIGlkX3Rva2VuIiwiY2xpZW50X2lkIjoiczZCaGRSa3F0MyIsInJlZGlyZWN0X3VyaSI6Imh0dHBzOi8vY2xpZW50LmV4YW1wbGUub3JnL2NiIiwiYXV0aG9yaXphdGlvbl9kZXRhaWxzIjpbeyJ0eXBlIjoiY3VzdG9tZXJfaW5mb3JtYXRpb24iLCJsb2NhdGlvbnMiOlsiaHR0cHM6Ly9leGFtcGxlLmNvbS9jdXN0b21lcnMiXSwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiXSwiZGF0YXR5cGVzIjpbImNvbnRhY3RzIiwicGhvdG9zIl19XSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSAiLCJzdGF0ZSI6ImFmMGlmanNsZGtqIiwibm9uY2UiOiJuLTBTNl9XekEyTWoiLCJtYXhfYWdlIjo4NjQwMH0.267q0EAuug-CjjaXXzF25dBaVLuAVR8zFrVgsMhLVqo"
+  }
 }
 ```
 
@@ -307,48 +344,49 @@ The following is a non-normative example of a compliant response where the resou
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization", error_description="Requires RAR."
+WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level requires more details"
 
 {
-  "method": "urn:ietf:params:oauth:grant-ext:rar",
-  "authorization_details":  [
-      {
-         "type": "customer_information",
-         "locations": [
-            "https://example.com/customers"
-         ],
-         "actions": [
-            "read",
-            "write"
-         ],
-         "datatypes": [
-            "contacts",
-            "photos"
-         ]
-      }
-   ]
+  "decision": false,
+  "context": {
+    "method": "urn:ietf:params:oauth:grant-ext:rar",
+    "authorization_details":  [
+        {
+          "type": "customer_information",
+          "locations": [
+              "https://example.com/customers"
+          ],
+          "actions": [
+              "read",
+              "write"
+          ],
+          "datatypes": [
+              "contacts",
+              "photos"
+          ]
+        }
+    ]
+  }
 }
 ```
 
 # Setp-Up Auhtorization Request
 A client receiving a step-up Authorization challenge as defined in section 4 of this specification from the resource server MUST take actions appropriate to each use case, as describe in the following sections.
 
-### Case Of `insufficient_delegated_authorization` Error
+### Case Of `failed_authorization` Error
 
 This case is implementation-specific and the client MUST determine on its own the next course of action. The client MAY for example decide to provide feedback to the end user, or MAY additionally trigger further ceremonies between the user agent and/or authorization server, or MAY follow any other applicable RFC. It is assumed here that an out-of-band contract exists between client and resource server, which enables the client to eventually provide the resource server with the right access token to access the protected resource.
 
-### Case Of `requested_authorization` Error
+### Case Of `insufficient_authorization` Error
 
 In this case, the client MUST follow the requirements fixed by the Resource Provider. The following situations CAN occur:
 
-|     method                            | authorization_details |          jar          |       reference       |  Expectation of the client                                                                                                                                           |
-| ------------------------------------- | --------------------- | --------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `urn:ietf:params:oauth:grant-ext:rar` | Set as specified      |         empty         |         empty         | Starts an Authorization Request as defined by RAR with the authorization details                                                                                     |
-| `urn:ietf:params:oauth:grant-ext:rar` |         empty         | Set as specified      |         empty         | Starts an Authorization Request as defined in RAR with the Request Object in JWT format                                                                              |
-| `urn:ietf:params:oauth:grant-ext:rar` |         empty         |         empty         | Set as specified      | Starts an Authorization Request as defined in RAR with the Request Object URI (it would mean the Resource Provider will have send the Request Object to AS directly) |
-| `urn:ietf:params:oauth:grant-ext:par` | Set as specified      |         empty         |         empty         | Starts an Authorization Request as defined by PAR with the authorization details                                                                                     |
-| `urn:ietf:params:oauth:grant-ext:par` |         empty         | Set as specified      |         empty         | Starts an Authorization Request as defined in PAR with the Request Object in JWT format                                                                              |
-| `urn:ietf:params:oauth:grant-ext:par` |         empty         |         empty         | Set as specified      | Starts an Authorization Request as defined in PAR with the Request Object URI (it would mean the Resource Provider will have send the Request Object to AS directly) |
+|     method                            | authorization_details |          jar          |  Expectation of the client                                                              |
+| ------------------------------------- | --------------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| `urn:ietf:params:oauth:grant-ext:rar` | Set as specified      |         empty         | Starts an Authorization Request as defined by RAR with the authorization details        |
+| `urn:ietf:params:oauth:grant-ext:rar` |         empty         | Set as specified      | Starts an Authorization Request as defined in RAR with the Request Object in JWT format |
+| `urn:ietf:params:oauth:grant-ext:par` | Set as specified      |         empty         | Starts an Authorization Request as defined by PAR with the authorization details        |
+| `urn:ietf:params:oauth:grant-ext:par` |         empty         | Set as specified      | Starts an Authorization Request as defined in PAR with the Request Object in JWT format |
 
 This specification recognizes that other method URI might be defined in the future. The relevant specifications SHALL define the expected behavior for such new methods.
 
@@ -359,10 +397,6 @@ This specification recognizes that other method URI might be defined in the futu
 # Information conveyed via the Access Token
 
 To evaluate whether an access token meets the protected resource's requirements, the resource server will enforce the conventional token-validation logic before analysing the content of the payload of the token as defined by [RFC7519], [RFC6749], and [RFC9068] as long as any specification that applies to IANA registered claims.
-
-# Authorization Server Metadata
-
-TODO
 
 # Deployment  Considerations
 
@@ -382,11 +416,21 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 - JWT-Secured Authorization Request [RFC9101] and
 - AuthZEN [D-OpenID-AuthZEN]
 
-This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4. Still, such payload might unintentionally disclose information about the subject, the resource, the action to be performed, as long as context-specific data such as but not limited to authorization details  that an attacker might use to gain knowledge about their target. Implementers should use care in determining what to disclose in the challenge and in what circumstances.
+## Scope
+
+This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4. 
+
+This specification does not attempt to define the mechanics by which extended authorization requests are processed and vlidated by the authorization server.
+
+## Validation Of Token
 
 For this specification, the resource provider MUST examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.
 
-As this specification provides a mechanism for the resource server to trigger user interaction, it's important for the authorization server and clients to consider that a malicious resource server might abuse that feature.
+## Step-Up Authorization Challenge Payload
+
+Following this document, response from the resource server to the client might unintentionally disclose information about the subject, the resource, the action to be performed, as long as context-specific data such as but not limited to authorization details that an attacker might use to gain knowledge about their target.
+
+Implementers should use care in determining what to disclose in the challenge and in what circumstances.
 
 # IANA Considerations
 
@@ -398,106 +442,68 @@ This document has no IANA actions.
 
 ## LLM Agent accessing a service via an LLM Tool on behalf of a user
 
-LLM agents, including those based on large language models (LLMs), are designed to manage user context, memory, and interaction state across multi-turn conversations. To perform complex tasks, these agents often integrate with external systems such as SaaS applications, internal services, or enterprise data sources. When accessing these systems, the agent MAY operate on behalf of an end user; its actions are then constrained by the user’s identity, role, and permissions as defined by the enterprise. This ensures that all data access and operations are properly scoped and compliant with organizational access controls.
+LLM agents, including those based on large language models (LLMs), are designed to manage user context, memory, and interaction state across multi-turn conversations. To perform complex tasks, these agents often integrate with external systems such as SaaS applications, internal services, or enterprise data sources. When accessing these systems, the agent operates on behalf of the end user, and its actions are constrained by the user’s identity, role, and permissions as defined by the enterprise. This ensures that all data access and operations are properly scoped and compliant with organizational access controls.
 
-In the case of autonomous agents or agents triggered by system or environmental events (i.e., in the cases where agents are not responding to human prompts), their actions should then by constrained by their own identity and entitlements. It is in that case assumed that the agent itself is capable of submitting to standard authorization ceremonies resulting in them holding access tokens compliant to the various OAuth [RFC6749] and [MCP] specifications.
+When using an LLM Tool, the LLM Agent is consumming an external API which has its own access control logic and policies on what conditions should be met for the access to the resources and the generation of the enriched information that the AI Agent can send return to the user who prompted it, with potential support of the LLM. Some access control conditions might require some authorization details as defined into, whithout being limited to, the examples of Rich Authorization Request [RFC9396].
 
-In the present use-case though, a user prompts an agent for some data using natural language. In order to comply, the AI agent determines that it needs to fetch some LLM-grounding data through an external tool exposed by an Model Context protocol [MCP] compliant server. The actual underlying external API has its own access control logic and resource access policies. This non-normative example assumes that the external API responds using the Rich Authorization Request [RAR - RFC9396] method.
+A non normative example of such interaction would be at the functional level:
 
-The following non normative diagram (Figure 2) depicts an example of the functional interaction between a LLM-powered agent, acting as an MCP client, the MCP Server exposing a Tool of interest to the Agent and the underlying API, the protected resource:
+    +----------+
+    |          |                  +--------------+
+    |          |---(1) prompt --->|              |                                                                                      +--------------+
+    |          |                  |              |-----------------------------------(2) LLM request ---------------------------------->|              |
+    |          |                  |              |                                                                                      |              |
+    |          |                  |              |<-----------------------------------(3) Tool usage -----------------------------------|              |
+    |  User    |                  |              |                        +--------------+                                              |              |
+    |          |                  |              |---(4) tool request --->|              |                                              |              |
+    |          |                  |              |                        |              |                           +--------------+   |              |
+    |          |                  |              |                        |              |---(5) service request --->|              |   |              |
+    |          |                  |     LLM      |                        |   LLM Tool   |                           | Service APIs |   |      LLM     |
+    |          |                  |    Agent     |                        |              |<--(6) service response ---|              |   |              |
+    |          |                  |              |                        |              |                           +--------------+   |              |
+    |          |                  |              |<--(7) tool response ---|              |                                              |              |
+    |          |                  |              |                        +--------------+                                              |              |
+    |          |                  |              |                                                                                      |              |
+    |          |                  |              |-----------------------------------(8) LLM request ---------------------------------->|              |
+    |          |                  |              |                                                                                      |              |
+    |          |                  |              |<----------------------------------(9) LLM outcome -----------------------------------|              |
+    |          |                  |              |                                                                                      +--------------+
+    |          |<-(10) response --|              |
+    |          |                  +--------------+
+    +----------+
 
-
-    +-------------------+
-    |                   |                       +--------------------+                        +-----------------+
-    |                   |        1) Prompt      |                    |      2) /authorize     |                 |
-    |                   |---------------------->|                    |----------------------->|                 |
-    |                   |                       |                    |  11) /token + MCP-CODE |                 |
-    |                   |                       |     MCP Client     |----------------------->|                 |
-    |                   |                       |   (LLM-enabled)    |       12) TOKEN        |                 |
-    |                   |10) redirect + MCP-CODE|                    |<-----------------------|                 |
-    |                   |---------------------->|                    | 13) Call Tool +  TOKEN |                 |
-    |   User Agent      |                       |                    |----------------------->|                 |                                 +-------------+
-    |                   |                       |                    |                        |                 |                                 |             |
-    |                   |                       |                    |   17) HTTP 403         |                 |                                 |             |
-    |                   |                       |                    |   WWW-AUTHENTICATE     |                 |                                 |             |
-    |                   |                       |                    |<-----------------------|                 |                                 | Backend API |
-    |                   |                       |                    |   18) /authorize       |                 |    14) API Call + TOKEN         | (Resource)  |
-    |                   |                       |                    |----------------------->|    MCP Server   |-------------------------------->|             |---> 15) (AuthZEN)
-    |                   |                       +--------------------+                        |                 |                                 |             |<---
-    |                   |                                                                     |  (Exposed TOOL) |                                 |             |
-    |                   |                   3) Redirect to External AS                        |                 |       16) HTTP 403              |             |
-    |                   |<--------------------------------------------------------------------|                 |<--------------------------------|             |
-    |                   |                      6) /token + AS-CODE                            |                 | HTTP/1.1 403 Forbidden          |             |
-    |                   |-------------------------------------------------------------------->|                 | WWW-Authenticate:               |             |
-    |                   |                9) redirect to MCP Client + MCP-CODE                 |                 | Bearer error="..",              |             |
-    |                   |<--------------------------------------------------------------------|                 | error_description="Requires RAR.|             |
-    |                   |                                                                     |                 |                                 |             |
-    |                   |              19) Redirect to External AS - back to 4)               |                 |                                 +-------------+
-    |                   |<------------------------------------------------------------------- |                 |
-    |                   |                                                                     |                 |
-    |                   |                        +---------------------+                      |                 |
-    |                   |    4) /authorize       |                     | 7) /token + AS-CODE  |                 |
-    |                   |----------------------> |    External AS      <----------------------|                 |
-    |                   |                        |      (IdP)          |                      |                 |
-    |                   | 5) redirect + AS-CODE  |                     |      8) TOKEN        |                 |
-    |                   |<---------------------- |                     ---------------------->|                 |
-    |                   |                        |                     |                      |                 |
-    +-------------------+                        +---------------------+                      +-----------------+
-
-_Figure 2: Abstract AI Agent MCP Use Case Flow with External AS_
-
-As per section 2.10 Third-Party Authorization Flow of the [MCP] specification, the MCP server acts as an authorization server, but proxies an external AS. In our use-case,
+_Figure 2: Abstract AI Agent Use Case Flow_
 
 ### Preconditions
 
-* The LLM Agent (MCP Client) has registered as an OAuth 2.0 Client (`com.example.llm-agent`) with the MCP Server(`mcp.example.com`)
-* The LLM Tool (MCP Server) has registered as an OAuth 2.0 Client (`4960880b83dc9`) with the external Enterprise IdP (`idp.example.com`)
-* The External Service API is protected by the Trust Domain controlled by the External Service IdP (`idp.example.com`)
-* We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool and underlying API.
-* The backend API and the MCP Server both use the same external AS, they can use the same access token which carries both it in `audience` claim.
+* The LLM Agent has a registered OAuth 2.0 Client (`com.example.llm-agent`) with the Enterprise IdP (`idp.example.com`)
+* The LLM Tool has a registered OAuth 2.0 Client (`4960880b83dc9`) with the Enterprise IdP (`idp.example.com`)
+* The LLM Tool has a registered OAuth 2.0 Client (`eb1e27d2df8b7`) with External Service IdP (`authorization-server.saas.net`)
+* The External Service APIs is protected by the Trust Domain controlled by the External Service IdP (`authorization-server.saas.net`)
+* User already authenticated at the Enterprise IdP (`idp.example.com`) and delegated its authorization to the LLM Agent
+* The LLM Agent is in possession of an Identity Token, an Access Token, and a Refresh Token issued by the Enterprise IdP (`idp.example.com`)
+* We assume that the Access Token is valid for the duration of this example and possess the appropriate scopes and claims to be authorized to call the LLM Tool
 
-### Flow details
-The following flow is based on the [MCP] authorization flow described in its section 2.10, and augments it with a Step-Up Authorization request as described in this document:
+### LLM Agent receives a response fromn the LLM
 
-1) The user initiates a prompt request on the MCP Client from the User Agent.
-2) The user is not yet authenticated, the MCP Client therefore redirects the User agent to the MCP Server's `/authorize` endpoint.
-3) The MCP Server relays the `authorize` request to the external AS, and redirects the user Agent there with an `authorization_code` grant flow.
-4) The User authenticates with the external AS and authorizes the MCP Client.
-5) The AS returns the `authorization_code` and redirects the User Agent to the MCP Server's callback.
-6) The User agent requests a token with the Code provided by the external AS.
-7) The MCP server's `/token` endpoint relays the token request to the external AS's `/token` endpoint.
-8) The MCP Server gets the `access_token` in response. It caches the `access_token` and generates a new MCP-CODE, different from the initial code provided by the external AS.
-9) The MCP Server redirects the user-agent to the MCP Client with the MCP-CODE.
-10) The User Agent presents the MCP-CODE to the MCP Client.
-11) The MCP Client requests the `access_token` from the MCP Server's `/token` endpoint.
-12) The MCP Server responds with the external AS's `access_token`, which it cached in step 8.
-13) Once ready, the MCP Client can now invoke the right MCP Server Tool, passing the `access_token` along with the request.
-14) The MCP Server makes a backend call to the underlying API. The API validates the `access_token` with the same external AS.
-15) The API resource _may_ use an external Policy Decision Point via [AuthZen] to evaluate the request.
-16)  The API resource determines that it requires an elevated Authorization State, and expresses the requirement through a RAR payload response.
-17)  The MCP Server relays the API Resource's response back to the MCP CLient.
-18)  The MCP Client initiates a new `authorize` PAR request with the MCP Server's `/authorize` endpoint.
-19)  The MCP Server relays the request to the external AS by redirecting the User Agent there. The process starts again from step 4, this time following a RAR flow.
-
-### MCP Client receives a response from the LLM
-
-Step 13 details: MCP Client receives a directive to use the MCP Tool with a specific payload and it calls the external MCP Server Tool with a valid access token.
+LLM Agent receives a directive to use the LLM Tool with a specific payload and it calls the external LLM Tool provided by an Enterprise internal IT with a valid access token.
 
 ```http
 POST /Pay
 Host: tool.example.com
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
 
-to=DE02100100109307118603&amount=123.50
+to=DE02100100109307118603&
+amount=123.50
 ```
 
 ### LLM Tool receives the request
 
-Step 15 details: MCP Server tool tries to call the backend Service APIs with the Access Token received using the JWT Bearer Authentication scheme and is issues an authentication challenge.
+LLM tool tries to call the service with the External Service APIs with the Access Token received using the JWT Bearer Authentication scheme (5) and is issued an authentication challenge.
 
 ```http
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="requested_authorization", error_description="A new authorization request is needed"
+WWW-Authenticate: Bearer error="new_authorization_needed", error_description="A new authorization request is needed"
 
 {
   "decision": false,
@@ -531,25 +537,94 @@ WWW-Authenticate: Bearer error="requested_authorization", error_description="A n
   }
 }
 ```
+> Note: How agents discover available tools is out of scope of this specification
 
-> Note: The methods used by MCP Clients and Agents to discover the right Tool(s) to use is out of scope of this specification
-
-The LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
-
-### LLM Tool obtains the access_token from the Authorization Server protecting the API
-
-Step 7 details:
+LLM Agent fetches the external tool resource's `OAuth 2.0 Protected Resource Metadata` per [RFC9728] to dynamically discover an authorization server that can issue an access token for the resource.
 
 ```http
-GET /oauth2/authorize?response_type=code&client_id=eb1e27d2df8b7&state=af0ifjsldkj&redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb&code_challenge_method=S256&code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U&authorization_details=%5B%7B%22type%22:%20%22payment_initiation%22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22%5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,%22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount%22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,%22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603%22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number%20Merchant%22%7D%5D
-Host: idp.example.com
+GET /.well-known/oauth-protected-resource
+Host: api.saas.net
+Accept: application/json
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+  "resource": "https://api.saas.net/",
+  "authorization_servers": [ "https://authorization-server.saas.net" ],
+  "bearer_methods_supported": [
+    "header",
+    "body"
+  ],
+  "scopes_supported": [
+    "agent.tools.read",
+    "agent.tools.write"
+  ],
+  "resource_documentation": "https://idp.saas.net/tools/resource_documentation.html"
+}
 ```
 
-> The User's authentication follows the flows described in the Rich Authorization Request [RFC9396] specification.
+LLM Agent discovers the Authorization Server configuration per {{RFC8414}}.
 
-The MCP Server Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.
+```http
+GET /.well-known/oauth-authorization-server
+Host: authorization-server.saas.net
+Accept: application/json
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+  "issuer": "https://authorization-server.saas.net",
+  "authorization_endpoint": "https://authorization-server.saas.net/oauth2/authorize",
+  "token_endpoint": "https://authorization-server.saas.net/oauth2/token",
+  "jwks_uri": "https://authorization-server.saas.net/oauth2/keys",
+  "registration_endpoint": "authorization-server.saas.net/oauth2/register",
+  "scopes_supported": [
+    "agent.read", "agent.write"
+  ],
+  "response_types_supported": [
+    "code"
+  ],
+  "grant_types_supported": [
+    "authorization_code", "refresh_token"
+  ]
+}
+```
+
+LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
+
+### LLM Tool obtains a set of token from Authorization Server protecting the API
+
+The LLM tool redirects the LLM Agent for an authorization request:
+
+```http
+GET /oauth2/authorize?response_type=code
+   &client_id=eb1e27d2df8b7
+   &state=af0ifjsldkj
+   &redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
+   &code_challenge_method=S256
+   &code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
+   &authorization_details=%5B%7B%22type%22:%20%22payment_initiation
+   %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
+   %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
+   %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
+   %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
+   %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
+   %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
+   %20Merchant%22%7D%5D
+Host: authorization-server.saas.net
+```
+
+> We don't describe the wy the user is authenticated as it follows Rich Authorization Request [RFC9396]
+
+The LLM Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.
+
+The LLM Tool can then make a new request to the External Service APIs (5). If it can meet the APIs Access Control requirement, the flow will follow with a response (6).
 
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+The authors wants to acknowledge the support and work of the following indivisuals: Grese Hyseni (Raiffeisen Bank International, grese.hyseni@rbinternational.com), Henrik Kroll (Raiffeisen Bank International, henrik.kroll@rbinternational.com).
+
+The authors wants also to recognize the trail blazers and thought leaders that created the ecosystem without which this draft proposal would not be able to solve customer pain points and secure usage of digital services, especially without being limited to: Vittorio Bertocci†, Brian Campbell (Ping Identity), Justin Richer (MongoDB), Aaron Parecki (Okta), Pieter Kasselman (SPRL), Mike Jones (Self-Issued Consulting, LLC).

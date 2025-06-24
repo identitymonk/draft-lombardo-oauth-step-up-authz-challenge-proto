@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-06-19T01:41:07.773106+00:00",
+  "timestamp": "2025-06-24T01:41:18.808639+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -62,7 +62,7 @@
       "labels": [],
       "body": "I'd recommend pulling out each point of the security considerations into it's own sub-section. This will make it clearer to the reader.\n\nAlso, the point that the enterprise is \"leaking\" authorization policy into the response to the client is something that I think should be more clearly stated. Or maybe call out that if this is a concern plan to use the \"PAR\" extension. ",
       "createdAt": "2025-05-26T14:44:08Z",
-      "updatedAt": "2025-05-28T02:00:27Z",
+      "updatedAt": "2025-06-23T21:12:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -71,6 +71,13 @@
           "body": "Right on @gffletch , I thought about the same thing about PAR.\n\nBut a PAR starting at the RP would even better. Might worth discussing as a separate proposal maybe?",
           "createdAt": "2025-05-28T02:00:26Z",
           "updatedAt": "2025-05-28T02:00:26Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Solved by #4 last commit",
+          "createdAt": "2025-06-23T21:12:05Z",
+          "updatedAt": "2025-06-23T21:12:05Z"
         }
       ]
     },
@@ -86,9 +93,17 @@
       "labels": [],
       "body": "Feedback from @aaronpk\n\n> Justify why a new spec and one the 403 and not a 401.\nHere we expect the token to have gone through conventional OAuth2 validation first before a decision is made on the content of the claims, including the authorization_details",
       "createdAt": "2025-05-26T20:39:21Z",
-      "updatedAt": "2025-05-26T20:39:21Z",
+      "updatedAt": "2025-06-23T21:12:23Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Solved by #4  last commit",
+          "createdAt": "2025-06-23T21:12:23Z",
+          "updatedAt": "2025-06-23T21:12:23Z"
+        }
+      ]
     },
     {
       "number": 5,
@@ -102,9 +117,17 @@
       "labels": [],
       "body": "",
       "createdAt": "2025-05-28T01:58:48Z",
-      "updatedAt": "2025-05-28T01:58:48Z",
+      "updatedAt": "2025-06-23T21:12:41Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Solved by #4 last commit",
+          "createdAt": "2025-06-23T21:12:41Z",
+          "updatedAt": "2025-06-23T21:12:41Z"
+        }
+      ]
     },
     {
       "number": 6,
@@ -118,9 +141,17 @@
       "labels": [],
       "body": "",
       "createdAt": "2025-05-28T01:59:04Z",
-      "updatedAt": "2025-05-28T01:59:04Z",
+      "updatedAt": "2025-06-23T21:13:01Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "solved by #4 last commit",
+          "createdAt": "2025-06-23T21:13:01Z",
+          "updatedAt": "2025-06-23T21:13:01Z"
+        }
+      ]
     },
     {
       "number": 7,
@@ -150,9 +181,55 @@
       "labels": [],
       "body": "Instructive\n=======\n\nHTTP/1.1 401 Unauthorized\nWWW-Authenticate: error=\"new_authorization_needed\",\nauthorization_details=[{\"type\":...,...},...],\nscope=\"...\"\n\nDiscussion:\n\n- Response can use WWW-Authenticate header as in step-up-authentication draft\n- acr_values and max_age already covered by https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements but can be combined together in one response following current draft\n- authorization_details are rather verbose, but will work as header size in not limited\n- Client extensions are resulting token claims, not request parameters (no ccr_values req parm like acr_values). so belong to the informative error response\n\nInformative\n========\n\nHTTP/1.1 403 Forbidden\n\n**Missing access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - email\",\n        \"details\": {\n            [{\n                    \"loc\": \"/email\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t\t}]\n        }\n    }\n}\n```\n\nDiscussion:\n- JSON response body as it's not a WWW-Authenticate instruction\n- Propose to employ ASC syntax to express required claims and values: https://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html#name-example\n- If confidentiality considerations prevent sharing detailed data then details block is redacted or omitted\n",
       "createdAt": "2025-06-17T13:48:10Z",
-      "updatedAt": "2025-06-18T08:55:36Z",
+      "updatedAt": "2025-06-23T13:51:14Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "The EKYC seems like a fair proposal, will add that to the dicussion points in IETF-123 Madrid\n\nIn the meantime, adding [ Draft-OAuth2.1 / Section5.3.2 ](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12#section-5.3.2) has reference for :\n- `403` being a valid HTTP Error Code for  Instructive response too\n- `403` supporting `WWW-Authenticate` HTTP header",
+          "createdAt": "2025-06-23T13:51:14Z",
+          "updatedAt": "2025-06-23T13:51:14Z"
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "id": "I_kwDOOIDCrM682AOT",
+      "title": "Dicuss ability for RP to return a reference to Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101]",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/9",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "While it is possible for the RP to return a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101] signed by the RP for the client to send to the AS, as of now there is no standard for an RP to push a JAR to the AS using Pushed Authorization Request and pass the reference URI to the client.\n\nThe group need to discuss more this proposition.\n",
+      "createdAt": "2025-06-23T13:46:02Z",
+      "updatedAt": "2025-06-23T18:05:45Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "I'm a bit confused, RP == client right? So maybe you meant RS where RP appears?",
+          "createdAt": "2025-06-23T17:44:01Z",
+          "updatedAt": "2025-06-23T17:44:01Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "RP === Resource Provider === Resource Server and not the Client",
+          "createdAt": "2025-06-23T17:59:55Z",
+          "updatedAt": "2025-06-23T17:59:55Z"
+        },
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "I see, RP is also an OpenID term for Relying Party, which confused me",
+          "createdAt": "2025-06-23T18:05:45Z",
+          "updatedAt": "2025-06-23T18:05:45Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -168,7 +245,7 @@
       "labels": [],
       "body": "Inital push to declare the base of the proposal",
       "createdAt": "2025-05-24T04:45:53Z",
-      "updatedAt": "2025-05-24T04:46:32Z",
+      "updatedAt": "2025-06-23T21:20:03Z",
       "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "baseRefName": "main",
       "baseRefOid": "d2edb746d099ac8b11f519825f25338957dead6d",
@@ -189,25 +266,35 @@
       "id": "PR_kwDOOIDCrM6X3yVb",
       "title": "Alex's updates",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/4",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "baboulebou",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "- Fixes to various part of the text, clarifications.\r\n- Changed the LLM example to use MCP.",
       "createdAt": "2025-05-28T00:32:27Z",
-      "updatedAt": "2025-05-28T15:00:49Z",
+      "updatedAt": "2025-06-23T21:19:36Z",
       "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "baseRefName": "main",
       "baseRefOid": "ae377152869f17b239569131a100af09c9a3a863",
       "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "headRefName": "alex-review-1",
-      "headRefOid": "b3ad0ce030d326f055c6b01e11167e88d85d2fe3",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
+      "headRefOid": "6e703220314c5d441a2de12db182fac51aa51a91",
+      "closedAt": "2025-06-23T21:19:30Z",
+      "mergedAt": "2025-06-23T21:19:30Z",
+      "mergedBy": "identitymonk",
+      "mergeCommit": {
+        "oid": "7dd4ca3cafbf1072619fc73a2e4d635fc363a585"
+      },
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": " Update following team call:\r\n\r\n- Updated Authors list\r\n- Created acknowledgement\r\n- Added reference to RFC9470\r\n- Added references and examples for FAPI 2.0 Security Profiles as long SMART on FHIR\r\n- Corrected AuthZEN payload in response\r\n- Changed Applicative Error Code based on decisions (did not not change 403 for 401)\r\n- Changed Applicative Error description\r\n- Modified JAR parameter and removed Request parameter\r\n- Removed AS metadata requirements\r\n- Reworked Security Section",
+          "createdAt": "2025-06-23T21:19:15Z",
+          "updatedAt": "2025-06-23T21:19:15Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOOIDCrM6rW8bo",

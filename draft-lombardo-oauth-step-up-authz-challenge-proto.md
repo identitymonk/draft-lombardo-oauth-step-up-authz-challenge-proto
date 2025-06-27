@@ -216,19 +216,22 @@ Although the case in which the new access token supersedes old tokens by virtue 
 
 The resource server responds with a `403` HTTP status code using the Bearer authentication scheme's error parameter (from [RFC6750]) when a request compliant with this specification does not meet its authorization state requirements.
 
-## Error Codes
+## WWW-Authenticate Header Error Code
 
-This specification introduces two new error code values for this challenge and other OAuth authentication schemes, as defined in OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470]:
-
-`failed_authorization`:
-: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. It is up to the client to decide what to perform next; some further implementation-specific details MAY be provided in the payload of the response.
+This specification introduces one new error code value for this challenge following other standards like OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470]:
 
 `insufficient_authorization`:
-: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided a detailed standard response that describes exactly which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
+: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided with a response that describes which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
 
-Note: the logic through which the resource server determines that the current request does not meet the authorization state requirements of the protected resource, and associated functionality (such as expressing, deploying and publishing such requirements), is out of scope for this document.
+Note: the logic through which the resource server determines that the current request does not meet the authorization state requirements of the protected resource, and associated functionality are out of scope for this document.
 
-## WWW-Authenticate Header Error Codes And Associated Payloads
+## WWW-Authenticate Header Description
+
+
+## Associated Challenge Body
+
+
+
 
 Each error code matches different types of HTTP response payloads, which guide the client into initiating the next Authorization Request.
 
@@ -262,7 +265,7 @@ pdp_message:
 
 The following is a non-normative example of a WWW-Authenticate header with the error code `failed_authorization` and associated payload:
 
-```http
+``` http
 HTTP/1.1 403 Forbidden
 WWW-Authenticate: Bearer error="failed_authorization", error_description="The authorization level is not met"
 

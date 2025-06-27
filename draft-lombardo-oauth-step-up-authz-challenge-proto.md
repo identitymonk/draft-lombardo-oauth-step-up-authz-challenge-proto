@@ -53,6 +53,7 @@ normative:
   RFC6749: # OAuth 2.0 Framework
   RFC6750: # OAuth 2.0 Authorization Framework: Bearer Token Usage
   RFC9068: # JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
+  RFC9470: # OAuth 2.0 Step Up Authentication Challenge Protocol
   D-OpenID-AuthZEN: #AuthZEN
     title: Authorization API
     target: https://openid.github.io/authzen/
@@ -68,16 +69,21 @@ normative:
       org: SGNL
     date: 2025
   RFC8259: #JSON
+  RFC7517: # JSON Web Key
+  RFC9728: # OAuth 2.0 Protected Resource Metadata
+  eKYC.IDA:
+    title: OpenID Connect Advanced Syntax for Claims (ASC) 1.0
+    target: https://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html
+    author:
+      - name: Dr Daniel Fett
+        role: editor
+        org: Authlete
+
+informative:
   RFC9396: # Rich Authorization Request
   RFC9126: # Pushed Authorization Request
   RFC9101: # JWT-Secured Authorization Request
-  RFC7517: # JSON Web Key
-
-informative:
   RFC7662: # Introspection
-  RFC9470: # OAuth 2.0 Step Up Authentication Challenge Protocol
-  RFC9728: # OAuth 2.0 Protected Resource Metadata
-  RFC8414: # OAuth2 Authorization Server Metadata
   RFC9449: # DPoP
   I-D.ietf-oauth-v2-1: # OAuth 2.1
   I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
@@ -208,9 +214,9 @@ This document does not describe how the resource server performs this assessment
 
 The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particuliar authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.
 
-Although the case in which the new access token supersedes old tokens by virtue of a higher authorization state is common, in line with the connotation of the term "step up authorization", it is important to keep in mind that this might not necessarily hold true in the general case. For example, for a particular request, a resource server might require a higher authorization state and a shorter validity, resulting in a token suitable for one-off calls but leading to frequent prompts: hence, offering a suboptimal user experience if the token is reused for routine operations. In such a scenario, the client would be better served by keeping both the old tokens, which are associated with a lower authorization state, and the new one: selecting the appropriate token for each API call. This is not a new requirement for clients, as incremental consent and least-privilege principles will require similar algorithms for managing access tokens associated with different scopes and permission levels. This document does not recommend any specific token-caching strategy: that choice will be dependent on the characteristics of every particular scenario and remains application-dependent as in the core OAuth cases. Furthermore, OAuth 2.0 [RFC6749] assumes access tokens are treated as opaque by clients. The token format might thus be unreadable to the client or might change at any time to become unreadable. So, during the course of any token-caching strategy, a client must not attempt to inspect the content of the access token to determine the associated authentication information or other details (see Section 6 of [RFC9068] for a more detailed discussion).
+As for [RFC9470], although the case in which the new access token supersedes old tokens by virtue of a higher authorization state is common, in line with the connotation of the term "step up authorization", it is important to keep in mind that this might not necessarily hold true in the general case. For example, for a particular request, a resource server might require a higher authorization state and a shorter validity, resulting in a token suitable for one-off calls but leading to frequent prompts: hence, offering a suboptimal user experience if the token is reused for routine operations. In such a scenario, the client would be better served by keeping both the old tokens, which are associated with a lower authorization state, and the new one: selecting the appropriate token for each API call. This is not a new requirement for clients, as incremental consent and least-privilege principles will require similar algorithms for managing access tokens associated with different scopes and permission levels. This document does not recommend any specific token-caching strategy: that choice will be dependent on the characteristics of every particular scenario and remains application-dependent as in the core OAuth cases. Furthermore, OAuth 2.0 [RFC6749] assumes access tokens are treated as opaque by clients. The token format might thus be unreadable to the client or might change at any time to become unreadable. So, during the course of any token-caching strategy, a client must not attempt to inspect the content of the access token to determine the associated authentication information or other details (see Section 6 of [RFC9068] for a more detailed discussion).
 
-# Authorization Requirements Challenge
+# Step-Up Authorization Challenge
 
 ## HTTP Error Status Code
 
@@ -218,180 +224,75 @@ The resource server responds with a `403` HTTP status code using the Bearer auth
 
 ## WWW-Authenticate Header Error Code
 
-This specification introduces one new error code value for this challenge following other standards like OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470]:
+Following other standards like OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470], the error code of the `WWW-Authenticate` HTTP Header MUST be set to `insufficient_authorization`. 
 
-`insufficient_authorization`:
-: The authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided with a response that describes which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
+This will signal that the authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided with a response that describes which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
 
 Note: the logic through which the resource server determines that the current request does not meet the authorization state requirements of the protected resource, and associated functionality are out of scope for this document.
 
 ## WWW-Authenticate Header Description
 
+The description field of the `WWW-Authenticate` HTTP Header MUST be set to `The authorization level requires more details`.
 
-## Associated Challenge Body
+## WWW-Authenticate Header Challenge
 
+This document specifies two types of challenge that MAY be used individually or conjointly.
 
+### `resource_metadata_uri` Challenge
 
+The resource server MAY return a challnge with the key `resource_metadata_uri`. When this challenge is present, its value MUST be set to the OAuth2 Protected Resource Metadata Endpoint URI for the resource server as defined in [RFC9728].
 
-Each error code matches different types of HTTP response payloads, which guide the client into initiating the next Authorization Request.
+The metadata endpoint MAY provide information on authorization details expected by the resource server.
 
-### Response Payloads
-This document specifies that all compliant HTTP responses must contain a payload, and that the contents of this payload depends on the error code issued by the resource server.
+Note: the logic through which the client determines how to use any information on authorization details expected by the resource server fron the metadata endpoint and how to map it to a viable authorization request for the authorization server is out of the scope of this document.
 
-The payload is expected to be a JSON object, the details of which are provided in the following sections.
+### `body_instructions` Challenge
 
-### `failed_authorization` Error
+The resource server MAY return a challnge with the key `body_instructions` When this challenge is present, its value MUST be set to `false` if no body is associated to the response from the resource server, or `true` if a body is associated to the response from the resource server.
 
-If the error code `failed_authorization` is used, the description field of the `WWW-Authenticate` HTTP Header MUST be set to `The authorization level is not met`.
+#### Challenge Associated Body Content
 
-Then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that MUST be set to `false` and MUST include as part of the response a `context` object. The `context` object SHOULD then include the following properties:
+If a body is attached to the to the response from the resource server, it MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response which MUST contain the following keys:
+ 
+`decision`:
+: _REQUIRED_ - MUST be set to `false`.
 
-error_msg:
-: _REQUIRED_ - a string representing a human readable justification of the resource provider access control leading to a `deny` of the request.
+`context`:
+: _REQUIRED_ - JSON structure as decribed below
 
-details:
-: _REQUIRED_ - a valid [RFC8259] JSON structure
+The `context` MAY contain the following information
 
-The `details` JSON structure MUST include only one of the following element:
+`error_msg`:
+: _OPTIONAL_ - a human readable String that summarize the details required
 
-expected_claims:
-:  _OPTIONAL_ - a list of space-delimited, case-sensitive strings representing the claim names that MUST be provided in the access token.
+`details`:
+: _OPTIONAL_ - a JSON structure representing the expected parameters to be passed by the client to the authorization server if a new authorization request is attempted. This JSON structure MUST be formatted using the syntax defined by [eKYC.IDA]
 
-expected_values:
-:  _OPTIONAL_ - a valid JSON [RFC8259] structure that will indicate the claim names that MUST be provided as JSON keys and the values, expressed as a JSON array of values.
+The following are non normative examples of some step-up authorization challenge with an associated body:
 
-pdp_message:
-: _OPTIONAL_ - a valid JSON [RFC8259] structure representing the error details the format of the policy decision point (PDP) that is the access authority for the resource provider. If the PDP is [D-OpenID-AuthZEN] compliant, then the `pdp_message` MAY relay the PDP response `context` object.
+- Missing expected access token scope
 
-The following is a non-normative example of a WWW-Authenticate header with the error code `failed_authorization` and associated payload:
+    HTTP/1.1 403 Forbidden
+    WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met", resource_metadata_uri="https://www.example.com/.well-known/oauth-protected-resource", body_instructions=true
 
-``` http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="failed_authorization", error_description="The authorization level is not met"
-
-{
-  "decision": false,
-  "context": {
-    "error_msg": "The user must belongs to a project to access the resource",
-    "details": {
-      "expected_values": {
-        "project" : ["phoenix", "eagle"]
-      }
-    }
-  }
-}
-```
-
-The following is a non-normative example of a compliant HTTP response relaying the response of a [D-OpenID-AuthZEN] compliant policy decision point (PDP) to the requesting client:
-
-```http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="failed_authorization", error_description="The authorization level is not met"
-
-{
-  "decision": false,
-  "context": {
-    "error_msg": "Access Policy failure",
-    "details": {
-      "pdp_message": {
-        "id": "0",
-        "reason_admin": {
-          "en": "Request failed policy C076E82F"
-        },
-        "reason_user": {
-          "en-403": "Insufficient privileges. Contact your administrator",
-          "es-403": "Privilegios insuficientes. Póngase en contacto con su administrador"
+    {
+        "decision": false,
+        "context": {
+            "error_msg": "Missing expected access token scope",
+            "details": [
+                {
+                    "loc": "scope",
+                    "values": ["resource:read", "resource:write"]
+            }
+            ]
         }
-      }
     }
-  }
-}
-```
 
-The format of the `pdp_message` element is left implementation specific and non-normative; it should be negotiated and agreed upon by the client and resource server. Nevertheless usage of open standards is recommended, for example the usage of [D-OpenID-AuthZEN] payloads wherever possible.
+# CLient Action Following A Setp-Up Auhtorization Challenge
 
-### `insufficient_authorization` Error
-
-If the error code `insufficient_authorization` is used, the description field of the `WWW-Authenticate` HTTP Header MUST be set to `The authorization level requires more details`.
-
-Then the HTTP body payload MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response for a `decision` that MUST be set to `false` and MUST include as part of the response a `context` object. The `context` object SHOULD then include the following properties:
-
-method:
-: _REQUIRED_ - The value of this element MUST be an absolute URI that can be registered with IANA. It SHOULD support present, future or custom values. If IANA registered URIs are used, then their meaning and semantics should be respected and used as defined in the registry. This specification recognizes primarily the values `urn:ietf:params:oauth:grant-ext:rar` defined by the Rich Authorization Request [RFC9396] specification and `urn:ietf:params:oauth:grant-ext:par` defined through the Pushed Authorization Request [RFC9126] specification.
-
-The structure MUST then include one of the following elements:
-
-authorization_details:
-: _OPTIONAL_ -  in JSON notation, an array of objects as defined in section 2 of Rich Authorization Request [RFC9396]
-
-jar:
-: _OPTIONAL_ - a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101]. In this case, the Request Object MUST contain the claim `iss` set to the Resource Provider and the claim `jwks_uri` to expose its signing keys in JSON Web Key format [RFC7517] through a dedicated dedicated URI.
-
-The following is a non-normative example of a compliant response where the resource server requests a PAR authorization ceremony:
-
-```http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level requires more details"
+This document does not define how the client should respond to a step-up authorization challenge. It is up to the logic of the client to decide 
 
 
-{
-  "decision": false,
-  "context": {
-    "method": "urn:ietf:params:oauth:grant-ext:par",
-    "jar": "eyJraWQiOiI3ZjczNWM5Ni0xMzg5LTQ1ODQtOWM5Zi01ZDg2MWJiYzU5YmIiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3JwLmV4YW1wbGUuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcy5leGFtcGxlLmNvbSIsInJlc3BvbnNlX3R5cGUiOiJjb2RlIGlkX3Rva2VuIiwiY2xpZW50X2lkIjoiczZCaGRSa3F0MyIsInJlZGlyZWN0X3VyaSI6Imh0dHBzOi8vY2xpZW50LmV4YW1wbGUub3JnL2NiIiwiYXV0aG9yaXphdGlvbl9kZXRhaWxzIjpbeyJ0eXBlIjoiY3VzdG9tZXJfaW5mb3JtYXRpb24iLCJsb2NhdGlvbnMiOlsiaHR0cHM6Ly9leGFtcGxlLmNvbS9jdXN0b21lcnMiXSwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiXSwiZGF0YXR5cGVzIjpbImNvbnRhY3RzIiwicGhvdG9zIl19XSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSAiLCJzdGF0ZSI6ImFmMGlmanNsZGtqIiwibm9uY2UiOiJuLTBTNl9XekEyTWoiLCJtYXhfYWdlIjo4NjQwMH0.267q0EAuug-CjjaXXzF25dBaVLuAVR8zFrVgsMhLVqo"
-  }
-}
-```
-
-The following is a non-normative example of a compliant response where the resource server requests pecific authorization details:
-
-```http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level requires more details"
-
-{
-  "decision": false,
-  "context": {
-    "method": "urn:ietf:params:oauth:grant-ext:rar",
-    "authorization_details":  [
-        {
-          "type": "customer_information",
-          "locations": [
-              "https://example.com/customers"
-          ],
-          "actions": [
-              "read",
-              "write"
-          ],
-          "datatypes": [
-              "contacts",
-              "photos"
-          ]
-        }
-    ]
-  }
-}
-```
-
-# Setp-Up Auhtorization Request
-A client receiving a step-up Authorization challenge as defined in section 4 of this specification from the resource server MUST take actions appropriate to each use case, as describe in the following sections.
-
-### Case Of `failed_authorization` Error
-
-This case is implementation-specific and the client MUST determine on its own the next course of action. The client MAY for example decide to provide feedback to the end user, or MAY additionally trigger further ceremonies between the user agent and/or authorization server, or MAY follow any other applicable RFC. It is assumed here that an out-of-band contract exists between client and resource server, which enables the client to eventually provide the resource server with the right access token to access the protected resource.
-
-### Case Of `insufficient_authorization` Error
-
-In this case, the client MUST follow the requirements fixed by the Resource Provider. The following situations CAN occur:
-
-|     method                            | authorization_details |          jar          |  Expectation of the client                                                              |
-| ------------------------------------- | --------------------- | --------------------- | --------------------------------------------------------------------------------------- |
-| `urn:ietf:params:oauth:grant-ext:rar` | Set as specified      |         empty         | Starts an Authorization Request as defined by RAR with the authorization details        |
-| `urn:ietf:params:oauth:grant-ext:rar` |         empty         | Set as specified      | Starts an Authorization Request as defined in RAR with the Request Object in JWT format |
-| `urn:ietf:params:oauth:grant-ext:par` | Set as specified      |         empty         | Starts an Authorization Request as defined by PAR with the authorization details        |
-| `urn:ietf:params:oauth:grant-ext:par` |         empty         | Set as specified      | Starts an Authorization Request as defined in PAR with the Request Object in JWT format |
-
-This specification recognizes that other method URI might be defined in the future. The relevant specifications SHALL define the expected behavior for such new methods.
 
 # Authorization Response
 
@@ -491,109 +392,102 @@ _Figure 2: Abstract AI Agent Use Case Flow_
 
 LLM Agent receives a directive to use the LLM Tool with a specific payload and it calls the external LLM Tool provided by an Enterprise internal IT with a valid access token.
 
-```http
-POST /Pay
-Host: tool.example.com
-Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
+  POST /Pay
+  Host: tool.example.com
+  Authorization: Bearer ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
 
-to=DE02100100109307118603&
-amount=123.50
-```
+  to=DE02100100109307118603&
+  amount=123.50
 
 ### LLM Tool receives the request
 
 LLM tool tries to call the service with the External Service APIs with the Access Token received using the JWT Bearer Authentication scheme (5) and is issued an authentication challenge.
 
-```http
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="new_authorization_needed", error_description="A new authorization request is needed"
+  HTTP/1.1 403 Forbidden
+  WWW-Authenticate: Bearer error="new_authorization_needed", error_description="A new authorization request is needed"
 
-{
-  "decision": false,
-  "context": {
-    "error_msg": "The user must be authorized to initiate payment for Merchant A ",
-    "details": {
-      "method": "urn:ietf:params:oauth:grant-ext:rar",
-      "authorization_details": [
-        {
-            "type": "payment_initiation",
-            "actions": [
-              "initiate",
-              "status",
-              "cancel"
-            ],
-            "locations": [
-              "https://example.com/payments"
-            ],
-            "instructedAmount": {
-              "currency": "EUR",
-              "amount": "123.50"
-            },
-            "creditorName": "Merchant A",
-            "creditorAccount": {
-              "iban": "DE02100100109307118603"
-            },
-            "remittanceInformationUnstructured": "Ref Number Merchant"
-        }
-      ]
+  {
+    "decision": false,
+    "context": {
+      "error_msg": "The user must be authorized to initiate payment for Merchant A ",
+      "details": {
+        "method": "urn:ietf:params:oauth:grant-ext:rar",
+        "authorization_details": [
+          {
+              "type": "payment_initiation",
+              "actions": [
+                "initiate",
+                "status",
+                "cancel"
+              ],
+              "locations": [
+                "https://example.com/payments"
+              ],
+              "instructedAmount": {
+                "currency": "EUR",
+                "amount": "123.50"
+              },
+              "creditorName": "Merchant A",
+              "creditorAccount": {
+                "iban": "DE02100100109307118603"
+              },
+              "remittanceInformationUnstructured": "Ref Number Merchant"
+          }
+        ]
+      }
     }
   }
-}
-```
-> Note: How agents discover available tools is out of scope of this specification
+
+> Note: How agents discover available tools is out of scope of this specification and this example
 
 LLM Agent fetches the external tool resource's `OAuth 2.0 Protected Resource Metadata` per [RFC9728] to dynamically discover an authorization server that can issue an access token for the resource.
 
-```http
-GET /.well-known/oauth-protected-resource
-Host: api.saas.net
-Accept: application/json
+    GET /.well-known/oauth-protected-resource
+    Host: api.saas.net
+    Accept: application/json
 
-HTTP/1.1 200 Ok
-Content-Type: application/json
+    HTTP/1.1 200 Ok
+    Content-Type: application/json
 
-{
-  "resource": "https://api.saas.net/",
-  "authorization_servers": [ "https://authorization-server.saas.net" ],
-  "bearer_methods_supported": [
-    "header",
-    "body"
-  ],
-  "scopes_supported": [
-    "agent.tools.read",
-    "agent.tools.write"
-  ],
-  "resource_documentation": "https://idp.saas.net/tools/resource_documentation.html"
-}
-```
+    {
+      "resource": "https://api.saas.net/",
+      "authorization_servers": [ "https://authorization-server.saas.net" ],
+      "bearer_methods_supported": [
+        "header",
+        "body"
+      ],
+      "scopes_supported": [
+        "agent.tools.read",
+        "agent.tools.write"
+      ],
+      "resource_documentation": "https://idp.saas.net/tools/resource_documentation.html"
+    }
 
 LLM Agent discovers the Authorization Server configuration per {{RFC8414}}.
 
-```http
-GET /.well-known/oauth-authorization-server
-Host: authorization-server.saas.net
-Accept: application/json
+    GET /.well-known/oauth-authorization-server
+    Host: authorization-server.saas.net
+    Accept: application/json
 
-HTTP/1.1 200 Ok
-Content-Type: application/json
+    HTTP/1.1 200 Ok
+    Content-Type: application/json
 
-{
-  "issuer": "https://authorization-server.saas.net",
-  "authorization_endpoint": "https://authorization-server.saas.net/oauth2/authorize",
-  "token_endpoint": "https://authorization-server.saas.net/oauth2/token",
-  "jwks_uri": "https://authorization-server.saas.net/oauth2/keys",
-  "registration_endpoint": "authorization-server.saas.net/oauth2/register",
-  "scopes_supported": [
-    "agent.read", "agent.write"
-  ],
-  "response_types_supported": [
-    "code"
-  ],
-  "grant_types_supported": [
-    "authorization_code", "refresh_token"
-  ]
-}
-```
+    {
+      "issuer": "https://authorization-server.saas.net",
+      "authorization_endpoint": "https://authorization-server.saas.net/oauth2/authorize",
+      "token_endpoint": "https://authorization-server.saas.net/oauth2/token",
+      "jwks_uri": "https://authorization-server.saas.net/oauth2/keys",
+      "registration_endpoint": "authorization-server.saas.net/oauth2/register",
+      "scopes_supported": [
+        "agent.read", "agent.write"
+      ],
+      "response_types_supported": [
+        "code"
+      ],
+      "grant_types_supported": [
+        "authorization_code", "refresh_token"
+      ]
+    }
 
 LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
 
@@ -601,25 +495,23 @@ LLM Agent has learned all necessary endpoints and supported capabilites to obtai
 
 The LLM tool redirects the LLM Agent for an authorization request:
 
-```http
-GET /oauth2/authorize?response_type=code
-   &client_id=eb1e27d2df8b7
-   &state=af0ifjsldkj
-   &redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
-   &code_challenge_method=S256
-   &code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
-   &authorization_details=%5B%7B%22type%22:%20%22payment_initiation
-   %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
-   %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
-   %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
-   %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
-   %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
-   %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
-   %20Merchant%22%7D%5D
-Host: authorization-server.saas.net
-```
+    GET /oauth2/authorize?response_type=code
+      &client_id=eb1e27d2df8b7
+      &state=af0ifjsldkj
+      &redirect_uri=https%3A%2F%2Ftool.example.com%2Fcb
+      &code_challenge_method=S256
+      &code_challenge=K2-ltc83acc4h0c9w6ESC_rEMTJ3bwc-uCHaoeK1t8U
+      &authorization_details=%5B%7B%22type%22:%20%22payment_initiation
+      %22,%22actions%22:%20%5B%22initiate%22,%22status%22,%22cancel%22
+      %5D,%22locations%22:%20%5B%22https://example.com/payments%22%5D,
+      %22instructedAmount%22:%20%7B%22currency%22:%20%22EUR%22,%22amount
+      %22:%20%22123.50%22%7D,%22creditorName%22:%20%22Merchant%20A%22,
+      %22creditorAccount%22:%20%7B%22iban%22:%20%22DE02100100109307118603
+      %22%7D,%22remittanceInformationUnstructured%22:%20%22Ref%20Number
+      %20Merchant%22%7D%5D
+    Host: authorization-server.saas.net
 
-> We don't describe the wy the user is authenticated as it follows Rich Authorization Request [RFC9396]
+> We don't describe the way the user is authenticated as it follows Rich Authorization Request [RFC9396]
 
 The LLM Tool will receive an Authorization Code that it will be able to exchange for a set of JWTs issued by the Authorization Server protecting the API.
 
@@ -630,4 +522,4 @@ The LLM Tool can then make a new request to the External Service APIs (5). If it
 
 The authors wants to acknowledge the support and work of the following indivisuals: Grese Hyseni (Raiffeisen Bank International, grese.hyseni@rbinternational.com), Henrik Kroll (Raiffeisen Bank International, henrik.kroll@rbinternational.com).
 
-The authors wants also to recognize the trail blazers and thought leaders that created the ecosystem without which this draft proposal would not be able to solve customer pain points and secure usage of digital services, especially without being limited to: Vittorio Bertocci†, Brian Campbell (Ping Identity), Justin Richer (MongoDB), Aaron Parecki (Okta), Pieter Kasselman (SPRL), Mike Jones (Self-Issued Consulting, LLC).
+The authors wants also to recognize the trail blazers and thought leaders that created the ecosystem without which this draft proposal would not be able to solve customer pain points and secure usage of digital services, especially without being limited to: Vittorio Bertocci†, Brian Campbell (Ping Identity), Justin Richer (MongoDB), Aaron Parecki (Okta), Pieter Kasselman (SPRL), Dr Mike Jones (Self-Issued Consulting, LLC), Dr Daniel Fett (Authlete).

@@ -157,7 +157,7 @@ the access token of the current request does not meet its authorization requirem
 
 In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known a provisioning time. [RFC9470] helped improve the feedback a resource server can provide to a client in case the user authentication method, authentication class, or the freshness of the authentication event did not meet the requirements expexted by the resource server. Although those approaches are viable in many situations, it falls short in several important circumstances, for instance, in [FAPI2.0-Security-Profiles] or [hl7.fhir.uv.smart-app-launch] regulated APIs when they require peculiar client authentication mechanisms to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.
 
-This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with a new error codes, `failed_authorization` and `insufficient_authorization`, which can be used by resource servers to signal to clients that the authorization delegation represented by the access token presented with the request does not meet the authorization requirements of the resource server. This document also introduces associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
+This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with one new error code, `insufficient_authorization`, which can be used by resource servers to signal to clients that the access token  presented with the request does not meet the authorization requirements of the resource server. This document also introduces auhtorization step-up challenges and associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
 
 The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Auhtorization Request [RFC9396], OAuth 2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured Authorization Request [RFC9101] for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.
 
@@ -363,17 +363,9 @@ The following are non normative examples of some step-up authorization challenge
 
 > Note: `gty`, `ccr`, and `cmr` are claims defined by [I-D.lombardo-oauth-client-extension-claims]
 
-# CLient Action Following A Setp-Up Auhtorization Challenge
+# CLient Action Following A Step-Up Auhtorization Challenge
 
 This document does not define how the client should respond to a step-up authorization challenge. It is up to the logic of the client to decide what is the most appropriate grant type flow to start in order to try to obtain a new set of tokens from the authorization server.
-
-# Authorization Response
-
- An authorization server complying with this specification will react to the presence of the presented parameters and react as defined by the associated specification being, without limitations to, the response described in [RFC6749].
-
-# Information conveyed via the Access Token
-
-To evaluate whether an access token meets the protected resource's requirements, the resource server will enforce the conventional token-validation logic before analysing the content of the payload of the token as defined by [RFC7519], [RFC6749], and [RFC9068] as long as any specification that applies to IANA registered claims.
 
 # Deployment  Considerations
 

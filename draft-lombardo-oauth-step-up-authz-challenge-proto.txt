@@ -103,19 +103,17 @@ Table of Contents
                an expected access token claim
        4.5.4.  body_instructions challenge expressing missing gty,
                ccr, and cmr as an expected access token claim
-   5.  CLient Action Following A Setp-Up Auhtorization Challenge
-   6.  Authorization Response
-   7.  Information conveyed via the Access Token
-   8.  Deployment Considerations
-   9.  Resource Server Metadata
-   10. Security Considerations
-     10.1.  Scope
-     10.2.  Validation Of Token
-     10.3.  Step-Up Authorization Challenge Payload
-   11. IANA Considerations
-   12. References
-     12.1.  Normative References
-     12.2.  Informative References
+   5.  CLient Action Following A Step-Up Auhtorization Challenge
+   6.  Deployment Considerations
+   7.  Resource Server Metadata
+   8.  Security Considerations
+     8.1.  Scope
+     8.2.  Validation Of Token
+     8.3.  Step-Up Authorization Challenge Payload
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
    Appendix A.  Use Cases
      A.1.  LLM Agent accessing a service via an LLM Tool on behalf of
            a user
@@ -147,14 +145,14 @@ Table of Contents
    that is opaque to the authorization server.
 
    This document extends the collection of error codes defined by
-   [RFC6750] and by [RFC9470] with a new error codes,
-   failed_authorization and insufficient_authorization, which can be
-   used by resource servers to signal to clients that the authorization
-   delegation represented by the access token presented with the request
+   [RFC6750] and by [RFC9470] with one new error code,
+   insufficient_authorization, which can be used by resource servers to
+   signal to clients that the access token presented with the request
    does not meet the authorization requirements of the resource server.
-   This document also introduces associated payload definitions.  The
-   resource server can use these payloads to explicitly communicate to
-   the client its authorization requirements.
+   This document also introduces auhtorization step-up challenges and
+   associated payload definitions.  The resource server can use these
+   payloads to explicitly communicate to the client its authorization
+   requirements.
 
    The client can then use this information to reach back to the
    authorization server with a new authorization request that specifies
@@ -502,7 +500,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
       Note: gty, ccr, and cmr are claims defined by
       [I-D.lombardo-oauth-client-extension-claims]
 
-5.  CLient Action Following A Setp-Up Auhtorization Challenge
+5.  CLient Action Following A Step-Up Auhtorization Challenge
 
    This document does not define how the client should respond to a
    step-up authorization challenge.  It is up to the logic of the client
@@ -510,22 +508,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    order to try to obtain a new set of tokens from the authorization
    server.
 
-6.  Authorization Response
-
-   An authorization server complying with this specification will react
-   to the presence of the presented parameters and react as defined by
-   the associated specification being, without limitations to, the
-   response described in [RFC6749].
-
-7.  Information conveyed via the Access Token
-
-   To evaluate whether an access token meets the protected resource's
-   requirements, the resource server will enforce the conventional
-   token-validation logic before analysing the content of the payload of
-   the token as defined by [RFC7519], [RFC6749], and [RFC9068] as long
-   as any specification that applies to IANA registered claims.
-
-8.  Deployment Considerations
+6.  Deployment Considerations
 
    This specification facilitates the communication of requirements from
    a resource server to a client, which, in turn, can enable a more
@@ -542,7 +525,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    impossible for subjects or clients to comply with or that lead to an
    undesirable user-experience outcome.
 
-9.  Resource Server Metadata
+7.  Resource Server Metadata
 
    Resource servers can advertise their support of this specification by
    including in their OAuth protected resource metadata document, as
@@ -551,7 +534,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    metadata document signals that the resource server MAY honor the
    issuance of step-up authorization challenge if its sees fit.
 
-10.  Security Considerations
+8.  Security Considerations
 
    This specification adds to previously defined OAuth mechanisms.
    Their respective security considerations apply:
@@ -574,7 +557,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
 
    *  AuthZEN [D-OpenID-AuthZEN]
 
-10.1.  Scope
+8.1.  Scope
 
    This specification does not attempt to define the mechanics by which
    access control is made by the resource provider and how the result of
@@ -585,7 +568,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    extended authorization requests are processed and vlidated by the
    authorization server.
 
-10.2.  Validation Of Token
+8.2.  Validation Of Token
 
    For this specification, the resource provider MUST examine the
    incoming access token and enforce the conventional token-validation
@@ -593,7 +576,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    method - before determining whether or not a challenge should be
    returned.
 
-10.3.  Step-Up Authorization Challenge Payload
+8.3.  Step-Up Authorization Challenge Payload
 
    Following this document, response from the resource server to the
    client might unintentionally disclose information about the subject,
@@ -604,13 +587,13 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    Implementers should use care in determining what to disclose in the
    challenge and in what circumstances.
 
-11.  IANA Considerations
+9.  IANA Considerations
 
    This document has no IANA actions.
 
-12.  References
+10.  References
 
-12.1.  Normative References
+10.1.  Normative References
 
    [D-OpenID-AuthZEN]
               GAzitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
@@ -667,7 +650,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               DOI 10.17487/RFC9728, April 2025,
               <https://www.rfc-editor.org/rfc/rfc9728>.
 
-12.2.  Informative References
+10.2.  Informative References
 
    [FAPI2.0-Security-Profiles]
               Fett, D. D., Ed., Tonge, D., Ed., and J. Heenan, Ed.,
@@ -689,9 +672,9 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    [I-D.lombardo-oauth-client-extension-claims]
               Lombardo, J. and A. Babeanu, "OAuth 2.0 client extension
               claims", Work in Progress, Internet-Draft, draft-lombardo-
-              oauth-client-extension-claims-00, 11 April 2025,
+              oauth-client-extension-claims-01, 28 June 2025,
               <https://datatracker.ietf.org/doc/html/draft-lombardo-
-              oauth-client-extension-claims-00>.
+              oauth-client-extension-claims-01>.
 
    [MCP]      "Model Context Protocol", n.d.,
               <https://modelcontextprotocol.io/specification/2025-06-18/

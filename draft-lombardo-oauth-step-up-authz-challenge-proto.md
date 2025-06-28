@@ -268,31 +268,104 @@ The `context` MAY contain the following information
 `details`:
 : _OPTIONAL_ - a JSON structure representing the expected parameters to be passed by the client to the authorization server if a new authorization request is attempted. This JSON structure MUST be formatted using the syntax defined by [eKYC.IDA]
 
-The following are non normative examples of some step-up authorization challenge with an associated body:
+## Non Normative Examples Of Step-Up Authorization Challenge
 
-- Missing expected access token scope
+The following are non normative examples of some step-up authorization challenges:
+
+- `resource_metadata_uri` challenge and `body_instructions` challenge expressing a missing expected access token scope:
 
     HTTP/1.1 403 Forbidden
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met", resource_metadata_uri="https://www.example.com/.well-known/oauth-protected-resource", body_instructions=true
 
     {
+      "decision": false,
+      "context": {
+            "error_msg": "Missing expected access token scope",
+            "details": [{
+        "loc": "/scope",
+        "method": "simple",
+        "values": ["resource:read", "resource:write"]
+        }]
+      }
+    }
+
+- `body_instructions` challenge expressing missing authorization_details:
+
+    HTTP/1.1 403 Forbidden
+    WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
+
+    {
+        "decision": false,
+        "context": {
+            "error_msg": "Missing authorization_details",
+            "details": [{
+          "loc": "/authorization_details",
+          "method": "simple",
+          "value": [{
+            "type": "payment_initiation",
+              "actions": [
+                "initiate",
+                "status",
+                "cancel"
+              ],
+              "locations": ["https://example.com/payments"],
+              "instructedAmount": {
+                "currency": "EUR",
+                "amount": "123.50"
+              },
+              "creditorName": "Merchant A",
+              "creditorAccount": {
+                "iban": "DE02100100109307118603"
+              },
+              "remittanceInformationUnstructured": "Ref Number Merchant"
+          }]
+        }]
+      }
+    }
+
+- `body_instructions` challenge expressing missing `email` as an expected access token claim
+
+    HTTP/1.1 403 Forbidden
+    WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
+
+    {
         "decision": false,
         "context": {
             "error_msg": "Missing expected access token scope",
-            "details": [
-                {
-                    "loc": "scope",
-                    "values": ["resource:read", "resource:write"]
-            }
-            ]
-        }
+            "details": [{
+          "loc": "/email",
+          "method": "exists"
+        }]
+      }
     }
+
+- `body_instructions` challenge expressing missing `gty`, `ccr`, and `cmr` as an expected access token claim
+
+    HTTP/1.1 403 Forbidden
+    WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
+
+    {
+        "decision": false,
+        "context": {
+            "error_msg": "Missing token claims - gty, ccr, cmr",
+            "details": [{
+        "loc": "/gty",
+        "method": "exists"
+        }, {
+        "loc": "/ccr",
+        "method": "exists"
+        }, {
+        "loc": "/cmr",
+        "method": "exists"
+        }]
+      }
+    }
+
+> Note: `gty`, `ccr`, and `cmr` are claims defined by [I-D.lombardo-oauth-client-extension-claims]
 
 # CLient Action Following A Setp-Up Auhtorization Challenge
 
-This document does not define how the client should respond to a step-up authorization challenge. It is up to the logic of the client to decide 
-
-
+This document does not define how the client should respond to a step-up authorization challenge. It is up to the logic of the client to decide what is the most appropriate grant type flow to start in order to try to obtain a new set of tokens from the authorization server.
 
 # Authorization Response
 
@@ -304,7 +377,11 @@ To evaluate whether an access token meets the protected resource's requirements,
 
 # Deployment  Considerations
 
-This specification facilitates the communication of requirements from a resource server to a client, which, in turn, can enable a more granular and appropriate Authorization Request at the Authorization Server using either an OAuth 2.0 [RFC6749] defined grant flow, a Rich Authorization Request [RFC9396], a Push Authorization Request [RFC9126], or a JWT-Secured Authorization Request [RFC9101]. However, it is important to realize that the user experience achievable in every specific deployment is a function of the policies each resource server and authorization server pair establishes. Imposing constraints on those policies is out of scope for this specification. It is therefore perfectly possible for resource servers and authorization servers to impose requirements that are impossible for subjects or clients to comply with or that lead to an undesirable user-experience outcome.
+This specification facilitates the communication of requirements from a resource server to a client, which, in turn, can enable a more granular and appropriate Authorization Request at the Authorization Server using either an OAuth 2.0 [RFC6749] defined grant flows, a Rich Authorization Request [RFC9396], a Push Authorization Request [RFC9126], or a JWT-Secured Authorization Request [RFC9101] as it sees fit. However, it is important to realize that the user experience achievable in every specific deployment is a function of the policies each resource server and authorization server pair establishes. Imposing constraints on those policies is out of scope for this document. It is therefore perfectly possible for resource servers and authorization servers to impose requirements that are impossible for subjects or clients to comply with or that lead to an undesirable user-experience outcome.
+
+# Resource Server Metadata
+
+Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in [RFC9728], the value `step_up_authorization_supported`. The presence of `step_up_authorization_supported` in the resource server metadata document signals that the resource server MAY honor the issuance of step-up authorization challenge if its sees fit.
 
 # Security Considerations
 

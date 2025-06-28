@@ -224,7 +224,7 @@ The resource server responds with a `403` HTTP status code using the Bearer auth
 
 ## WWW-Authenticate Header Error Code
 
-Following other standards like OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470], the error code of the `WWW-Authenticate` HTTP Header MUST be set to `insufficient_authorization`. 
+Following other standards like OAuth 2.0 Demonstrating Proof of Possession (DPoP)[RFC9449] and in OAuth 2.0 Step Up Authentication Challenge Protocol[RFC9470], the error code of the `WWW-Authenticate` HTTP Header MUST be set to `insufficient_authorization`.
 
 This will signal that the authorization mechanisms used for the issuance of the access token presented with the request do not meet the authorization state requirements of the protected resource. The client is provided with a response that describes which new authorization mechanisms and details SHOULD be used in order to gain access to the requested resource. The client SHOULD then initiate a new ceremony with the authorization server, that comply with the stated resource requirements.
 
@@ -253,7 +253,7 @@ The resource server MAY return a challnge with the key `body_instructions` When 
 #### Challenge Associated Body Content
 
 If a body is attached to the to the response from the resource server, it MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response which MUST contain the following keys:
- 
+
 `decision`:
 : _REQUIRED_ - MUST be set to `false`.
 
@@ -272,7 +272,7 @@ The `context` MAY contain the following information
 
 The following are non normative examples of some step-up authorization challenges:
 
-- `resource_metadata_uri` challenge and `body_instructions` challenge expressing a missing expected access token scope:
+### `resource_metadata_uri` challenge and `body_instructions` challenge expressing a missing expected access token scope:
 
     HTTP/1.1 403 Forbidden
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met", resource_metadata_uri="https://www.example.com/.well-known/oauth-protected-resource", body_instructions=true
@@ -289,7 +289,7 @@ The following are non normative examples of some step-up authorization challenge
       }
     }
 
-- `body_instructions` challenge expressing missing authorization_details:
+### `body_instructions` challenge expressing missing authorization_details:
 
     HTTP/1.1 403 Forbidden
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
@@ -323,7 +323,7 @@ The following are non normative examples of some step-up authorization challenge
       }
     }
 
-- `body_instructions` challenge expressing missing `email` as an expected access token claim
+### `body_instructions` challenge expressing missing `email` as an expected access token claim
 
     HTTP/1.1 403 Forbidden
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
@@ -339,7 +339,7 @@ The following are non normative examples of some step-up authorization challenge
       }
     }
 
-- `body_instructions` challenge expressing missing `gty`, `ccr`, and `cmr` as an expected access token claim
+### `body_instructions` challenge expressing missing `gty`, `ccr`, and `cmr` as an expected access token claim
 
     HTTP/1.1 403 Forbidden
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
@@ -390,8 +390,8 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 - OAuth 2.0 [RFC6749],
 - JWT access tokens [RFC9068],
 - Bearer WWW-Authenticate [RFC6750],
-- token introspection [RFC7662],
-- authorization server metadata [RFC8414],
+- Token introspection [RFC7662],
+- OAuth2 Protected Resource Metadata [RFC9728],
 - Rich Authorization Request [RFC9396],
 - Push Authorization Request [RFC9126],
 - JWT-Secured Authorization Request [RFC9101] and
@@ -540,7 +540,7 @@ LLM Agent fetches the external tool resource's `OAuth 2.0 Protected Resource Met
       "resource_documentation": "https://idp.saas.net/tools/resource_documentation.html"
     }
 
-LLM Agent discovers the Authorization Server configuration per {{RFC8414}}.
+LLM Agent discovers the Authorization Server configuration per [RFC9728].
 
     GET /.well-known/oauth-authorization-server
     Host: authorization-server.saas.net

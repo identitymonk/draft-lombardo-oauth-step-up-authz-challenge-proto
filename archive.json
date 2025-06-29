@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-06-24T01:41:18.808639+00:00",
+  "timestamp": "2025-06-29T01:50:06.902329+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -179,9 +179,9 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Instructive\n=======\n\nHTTP/1.1 401 Unauthorized\nWWW-Authenticate: error=\"new_authorization_needed\",\nauthorization_details=[{\"type\":...,...},...],\nscope=\"...\"\n\nDiscussion:\n\n- Response can use WWW-Authenticate header as in step-up-authentication draft\n- acr_values and max_age already covered by https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements but can be combined together in one response following current draft\n- authorization_details are rather verbose, but will work as header size in not limited\n- Client extensions are resulting token claims, not request parameters (no ccr_values req parm like acr_values). so belong to the informative error response\n\nInformative\n========\n\nHTTP/1.1 403 Forbidden\n\n**Missing access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - email\",\n        \"details\": {\n            [{\n                    \"loc\": \"/email\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"exists\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"exists\"\n\t\t\t}]\n        }\n    }\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": {\n            [{\n                    \"loc\": \"/gty\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/ccr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t\t},\n\t\t\t{\n                    \"loc\": \"/cmr\",\n                    \"method\": \"simple\",\n\t\t\t\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t\t}]\n        }\n    }\n}\n```\n\nDiscussion:\n- JSON response body as it's not a WWW-Authenticate instruction\n- Propose to employ ASC syntax to express required claims and values: https://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html#name-example\n- If confidentiality considerations prevent sharing detailed data then details block is redacted or omitted\n",
+      "body": "Discussion 26.06.2025:\n==============\n- Border between **Instructive** / **Informative** is hard to define. Therefore we'll:\n   - opt for a single error code\n   - Reuse WWW-Authenticate header (in line with step-up-authentication draft https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements)\n   - Provide large responses in the body with an indication in the WWW-Authenticate header, avoiding header size restrictions\n- We'll include a RFC 9728 resource_metadata_uri\n- Use ASC draft syntax describing expected token claims and values\n\nCombined Response\n=============\n\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", error_description=\"The authorization level is not met\", resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\", body_instructions=true\n\n**Missing expected access token scope**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\"loc\": \"/scope\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"resource:read\", \"resource:write\"]\n\t\t}]\n\t}\n}\n```\n\n**Missing authorization_details**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing authorization_details\",\n        \"details\": [{\n\t\t\t\"loc\": \"/authorization_details\",\n\t\t\t\"method\": \"simple\",\n\t\t\t\"value\": [{\n\t\t\t\t\"type\": \"payment_initiation\",\n\t\t\t\t\t\"actions\": [\n\t\t\t\t\t\t\"initiate\",\n\t\t\t\t\t\t\"status\",\n\t\t\t\t\t\t\"cancel\"\n\t\t\t\t\t],\n\t\t\t\t\t\"locations\": [\"https://example.com/payments\"],\n\t\t\t\t\t\"instructedAmount\": {\n\t\t\t\t\t\t\"currency\": \"EUR\",\n\t\t\t\t\t\t\"amount\": \"123.50\"\n\t\t\t\t\t},\n\t\t\t\t\t\"creditorName\": \"Merchant A\",\n\t\t\t\t\t\"creditorAccount\": {\n\t\t\t\t\t\t\"iban\": \"DE02100100109307118603\"\n\t\t\t\t\t},\n\t\t\t\t\t\"remittanceInformationUnstructured\": \"Ref Number Merchant\"\n\t\t\t}]\n\t\t}]\n\t}\n}\n```\n\n**Missing expected access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\t\"loc\": \"/email\",\n\t\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"simple\",\n\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t}]\n\t}\n}\n```",
       "createdAt": "2025-06-17T13:48:10Z",
-      "updatedAt": "2025-06-23T13:51:14Z",
+      "updatedAt": "2025-06-27T08:09:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -190,6 +190,41 @@
           "body": "The EKYC seems like a fair proposal, will add that to the dicussion points in IETF-123 Madrid\n\nIn the meantime, adding [ Draft-OAuth2.1 / Section5.3.2 ](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12#section-5.3.2) has reference for :\n- `403` being a valid HTTP Error Code for  Instructive response too\n- `403` supporting `WWW-Authenticate` HTTP header",
           "createdAt": "2025-06-23T13:51:14Z",
           "updatedAt": "2025-06-23T13:51:14Z"
+        },
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "Edited issue & responses to reflect today's discussion",
+          "createdAt": "2025-06-26T20:21:39Z",
+          "updatedAt": "2025-06-26T20:21:39Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "I am little bit lost as it seemed to me that:\n- the agreed proposal was to have `resource_metdata_uri` as challenge of `WWW-Authenticate` with the ability to set a second or alternative challenge to `body_instructions` if a body was present\n- `informative` and `instructive` should no longer be specified anymore as it is to the client to decide along which flow to execute the response\n- in fact saying:\n\n```\n{\n  \"loc\": \"/gty\",\n  \"method\": \"simple\",\n  \"values\": [\"authorization_code_flow\", \"client_credentials\"]\n}\n```\nis already bearing the sense that the claim gty is expected. There is no need to encpsulate it in a `\"expected_claims\"` nor an `Informative` clause.\n\n- we agreed that `authorization_detaills` would then be represented as:\n\n```\n{\n  \"loc\": \"/authorization_details\",\n  \"method\": \"simple\",\n  \"value\": {\n\t\"type\": \"payment_initiation\",\n\t\t\"actions\": [\n\t\t\t\"initiate\",\n\t\t\t\"status\",\n\t\t\t\"cancel\"\n\t\t],\n\t\t\"locations\": [\"https://example.com/payments\"],\n\t\t\"instructedAmount\": {\n\t\t\t\"currency\": \"EUR\",\n\t\t\t\"amount\": \"123.50\"\n\t\t},\n\t\t\"creditorName\": \"Merchant A\",\n\t\t\"creditorAccount\": {\n\t\t\t\"iban\": \"DE02100100109307118603\"\n\t\t},\n\t\t\"remittanceInformationUnstructured\": \"Ref Number Merchant\"\n\t}\n }\n```\n\nwithout any notion of `instructive` as the client will decide how to proceed, if pby RAR, PAR, JAR or any other mean it sees fit.",
+          "createdAt": "2025-06-27T03:44:04Z",
+          "updatedAt": "2025-06-27T03:44:26Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Also passing `resource_metdata_uri` in the body creates confusion as all the others elements must be authorization request parameters and `resource_metdata_uri` is not one.\n\nTherefore I counter propose that `resource_metdata_uri` remains a challenge, for example:\n\n```\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", error_description=\"The authorization level is not met\", resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\", body_instructions=true\n\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [\n            {\n                \"loc\": \"scope\",\n                \"values\": [\"resource:read\", \"resource:write\"]\n\t\t    }\n        ]\n    }\n}\n```\n\n\n",
+          "createdAt": "2025-06-27T04:19:08Z",
+          "updatedAt": "2025-06-27T04:19:44Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Finally ASC does not allow OneOf or Among comparisons. \n\n1. What if I want to say that `scope` must be one of ['A', 'B'] ?\n2. What if I want to say that `scope` must contain 'A' and 'B' without necessarily be `A B`? meaning that `A B C` and `A D B` should be valid too.",
+          "createdAt": "2025-06-27T04:22:47Z",
+          "updatedAt": "2025-06-27T04:28:37Z"
+        },
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "Thanks @identitymonk agree with comments. I made the change at night before going to bed and already had thoughts in the same direction as you. I've reworked it using your proposal.\n\nASC supports oneOf. See:\nhttps://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html#name-syntax-and-processing\n\n\"For values, the claim value must exactly match at least **one of** the values in the array\"\n\nHowever, ASC does not support 2Of, as in `scope` must contain 'A' and 'B'. I think when considering `scope` that's okay as also API GW's process it as oneOf. If it's a gap we can discuss it with Daniel Fett to enhance his draft",
+          "createdAt": "2025-06-27T07:48:12Z",
+          "updatedAt": "2025-06-27T08:09:01Z"
         }
       ]
     },
@@ -228,6 +263,30 @@
           "body": "I see, RP is also an OpenID term for Relying Party, which confused me",
           "createdAt": "2025-06-23T18:05:45Z",
           "updatedAt": "2025-06-23T18:05:45Z"
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOOIDCrM69098-",
+      "title": "Feedback to -01 version",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/11",
+      "state": "OPEN",
+      "author": "yaron-zehavi",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "- Introduction still mentions 2 error codes: \"with a new error codes, `failed_authorization` and `insufficient_authorization`\"\n- 4.1 \"The resource server responds with a 403 HTTP status code using the Bearer authentication scheme's error parameter\". Maybe not critical for now, but we should consider DPoP tokens as well, where `Bearer` doesn't fit\n- Typo in 5 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-client-action-following-a-s, Should read \"Step-Up\" where \"Setp-Up\" is written\n- 6 Authorization Response https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-authorization-response - Perhaps can be removed as it doesn't change anything in how AS works\n- Same for 7 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-information-conveyed-via-th",
+      "createdAt": "2025-06-28T09:33:34Z",
+      "updatedAt": "2025-06-28T19:44:49Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "thanks @yaron-zehavi.\n\nAll taken into account.  One comment on:\n\n>4.1 \"The resource server responds with a 403 HTTP status code using the Bearer authentication scheme's error parameter\". Maybe not critical for now, but we should consider DPoP tokens as well, where Bearer doesn't fit\n\nDPoP is proof  that the token issued is played by the client it has been issued to. Here the step-up Authorization signal is not commenting on DPoP but on the content of the access token presented as bearer token (whatever along a DPoP token or not. So the scheme is the right one as the challenge is concerning the Access Token. Up to the client to present a new Bearer Access Token based on this information with or without a DPoP token.\n\nStill I think that the notion of the DPoP token verification is an interesting ask in the scope of AuthZEN (@baboulebou )",
+          "createdAt": "2025-06-28T19:44:49Z",
+          "updatedAt": "2025-06-28T19:44:49Z"
         }
       ]
     }
@@ -529,6 +588,62 @@
           ]
         }
       ]
+    },
+    {
+      "number": 10,
+      "id": "PR_kwDOOIDCrM6cgQIS",
+      "title": "Jeff review 0626",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/10",
+      "state": "MERGED",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR is taking into account all the discussions of the meeting of June 26th as long as the follow-up discussions with Yaron:\r\n\r\n- numbering\r\n- formatting of http code\r\n- merging of error code\r\n- removal of JAR\r\n- formatting of WWW-Authenticate\r\n- Formating of AuthZEN response with ASC taxonomy\r\n- Adding of OAuth2 Protected Resource capability",
+      "createdAt": "2025-06-28T01:18:51Z",
+      "updatedAt": "2025-06-28T01:21:20Z",
+      "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "baseRefName": "main",
+      "baseRefOid": "7dd4ca3cafbf1072619fc73a2e4d635fc363a585",
+      "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "headRefName": "jeff-review-0626",
+      "headRefOid": "4f95cc0309f5edeee5393fa5e1af9dedc08f7fbf",
+      "closedAt": "2025-06-28T01:21:19Z",
+      "mergedAt": "2025-06-28T01:21:19Z",
+      "mergedBy": "identitymonk",
+      "mergeCommit": {
+        "oid": "7dbb7815c99276574d1a3a88c0679363f264fd4c"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 12,
+      "id": "PR_kwDOOIDCrM6cjDZX",
+      "title": "integrated Yaron feedback on 2706",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/12",
+      "state": "MERGED",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "See #11 ",
+      "createdAt": "2025-06-28T19:46:00Z",
+      "updatedAt": "2025-06-28T19:46:38Z",
+      "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "baseRefName": "main",
+      "baseRefOid": "7dbb7815c99276574d1a3a88c0679363f264fd4c",
+      "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "headRefName": "review-2806",
+      "headRefOid": "d1f4765ed546d5a05b4c41687f69c045066073ec",
+      "closedAt": "2025-06-28T19:46:35Z",
+      "mergedAt": "2025-06-28T19:46:35Z",
+      "mergedBy": "identitymonk",
+      "mergeCommit": {
+        "oid": "6bddc2a0375e14aced0d7d767829fcf3015fa66d"
+      },
+      "comments": [],
+      "reviews": []
     }
   ]
 }

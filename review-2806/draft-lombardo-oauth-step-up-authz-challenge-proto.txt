@@ -5,12 +5,12 @@
 Web Authorization Protocol                                   J. Lombardo
 Internet-Draft                                                       AWS
 Intended status: Informational                                A. Babeanu
-Expires: 30 December 2025                                       IndyKite
+Expires: 1 January 2026                                         IndyKite
                                                                Y. Zehavi
                                            Raiffeisen Bank International
                                                              G. Fletcher
                                                       Practical Identity
-                                                            28 June 2025
+                                                            30 June 2025
 
 
             OAuth 2.0 step-up authorization challenge proto
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 December 2025.
+   This Internet-Draft will expire on 1 January 2026.
 
 Copyright Notice
 
@@ -103,7 +103,7 @@ Table of Contents
                an expected access token claim
        4.5.4.  body_instructions challenge expressing missing gty,
                ccr, and cmr as an expected access token claim
-   5.  CLient Action Following A Step-Up Auhtorization Challenge
+   5.  Client Action Following A Step-Up Authorization Challenge
    6.  Deployment Considerations
    7.  Resource Server Metadata
    8.  Security Considerations
@@ -118,7 +118,7 @@ Table of Contents
      A.1.  LLM Agent accessing a service via an LLM Tool on behalf of
            a user
        A.1.1.  Preconditions
-       A.1.2.  LLM Agent receives a response fromn the LLM
+       A.1.2.  LLM Agent receives a response from the LLM
        A.1.3.  LLM Tool receives the request
        A.1.4.  LLM Tool obtains a set of token from Authorization
                Server protecting the API
@@ -134,7 +134,7 @@ Table of Contents
    [RFC9470] helped improve the feedback a resource server can provide
    to a client in case the user authentication method, authentication
    class, or the freshness of the authentication event did not meet the
-   requirements expexted by the resource server.  Although those
+   requirements expected by the resource server.  Although those
    approaches are viable in many situations, it falls short in several
    important circumstances, for instance, in [FAPI2.0-Security-Profiles]
    or [hl7.fhir.uv.smart-app-launch] regulated APIs when they require
@@ -149,7 +149,7 @@ Table of Contents
    insufficient_authorization, which can be used by resource servers to
    signal to clients that the access token presented with the request
    does not meet the authorization requirements of the resource server.
-   This document also introduces auhtorization step-up challenges and
+   This document also introduces authorization step-up challenges and
    associated payload definitions.  The resource server can use these
    payloads to explicitly communicate to the client its authorization
    requirements.
@@ -159,7 +159,7 @@ Table of Contents
    the additional authorization details required for issuing tokens
    useable at the resource.  This document does not describe any new
    methods to perform this additional authorization request but will
-   rely on OAuth 2.0 Rich Auhtorization Request [RFC9396], OAuth 2.0
+   rely on OAuth 2.0 Rich Authorization Request [RFC9396], OAuth 2.0
    Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured
    Authorization Request [RFC9101] for this purpose.  These extensions
    will make it possible to implement interoperable step up
@@ -280,7 +280,7 @@ Table of Contents
    absolute hierarchy of authorization states expressed in interoperable
    fashion.  The notion of a state emerges from the fact that the
    resource server may only want to accept certain authorization
-   mechanisms.  When presented with a token derived from particuliar
+   mechanisms.  When presented with a token derived from particular
    authorization mechanisms (i.e., a given authorization state) that it
    does not want to accept (i.e., below the threshold it will accept),
    the resource server seeks to step up (i.e., renegotiate) from the
@@ -357,7 +357,7 @@ Table of Contents
 
 4.4.1.  resource_metadata_uri Challenge
 
-   The resource server MAY return a challnge with the key
+   The resource server MAY return a challenge with the key
    resource_metadata_uri.  When this challenge is present, its value
    MUST be set to the OAuth2 Protected Resource Metadata Endpoint URI
    for the resource server as defined in [RFC9728].
@@ -367,13 +367,13 @@ Table of Contents
 
    Note: the logic through which the client determines how to use any
    information on authorization details expected by the resource server
-   fron the metadata endpoint and how to map it to a viable
+   from the metadata endpoint and how to map it to a viable
    authorization request for the authorization server is out of the
    scope of this document.
 
 4.4.2.  body_instructions Challenge
 
-   The resource server MAY return a challnge with the key
+   The resource server MAY return a challenge with the key
    body_instructions When this challenge is present, its value MUST be
    set to false if no body is associated to the response from the
    resource server, or true if a body is associated to the response from
@@ -387,7 +387,7 @@ Table of Contents
 
    decision:  _REQUIRED_ - MUST be set to false.
 
-   context:  _REQUIRED_ - JSON structure as decribed below
+   context:  _REQUIRED_ - JSON structure as described below
 
    The context MAY contain the following information
 
@@ -500,7 +500,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
       Note: gty, ccr, and cmr are claims defined by
       [I-D.lombardo-oauth-client-extension-claims]
 
-5.  CLient Action Following A Step-Up Auhtorization Challenge
+5.  Client Action Following A Step-Up Authorization Challenge
 
    This document does not define how the client should respond to a
    step-up authorization challenge.  It is up to the logic of the client
@@ -565,7 +565,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    challenges defined in Section 4.
 
    This specification does not attempt to define the mechanics by which
-   extended authorization requests are processed and vlidated by the
+   extended authorization requests are processed and validated by the
    authorization server.
 
 8.2.  Validation Of Token
@@ -732,13 +732,13 @@ A.1.  LLM Agent accessing a service via an LLM Tool on behalf of a user
    data access and operations are properly scoped and compliant with
    organizational access controls.
 
-   When using an LLM Tool, the LLM Agent is consumming an external API
+   When using an LLM Tool, the LLM Agent is consuming an external API
    which has its own access control logic and policies on what
    conditions should be met for the access to the resources and the
    generation of the enriched information that the AI Agent can send
    return to the user who prompted it, with potential support of the
    LLM.  Some access control conditions might require some authorization
-   details as defined into, whithout being limited to, the examples of
+   details as defined into, without being limited to, the examples of
    Rich Authorization Request [RFC9396].
 
    A non normative example of such interaction would be at the
@@ -796,14 +796,16 @@ A.1.1.  Preconditions
       example and possess the appropriate scopes and claims to be
       authorized to call the LLM Tool
 
-A.1.2.  LLM Agent receives a response fromn the LLM
+A.1.2.  LLM Agent receives a response from the LLM
 
    LLM Agent receives a directive to use the LLM Tool with a specific
    payload and it calls the external LLM Tool provided by an Enterprise
    internal IT with a valid access token.
 
-   POST /Pay Host: tool.example.com Authorization: Bearer
-   ejyfewfewfwefwefewf.e.fwefwe.fw.e.fwef
+   POST /Pay Host: tool.example.com Authorization: Bearer eyJhbGciOiJIUz
+   I1NiIsInR5cCI6ImF0K2p3dCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG
+   4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.S9QVKeqooCU7nRahQsP
+   hnV7xOrkqsKB7YKQEReyaWT8
 
    to=DE02100100109307118603& amount=123.50
 
@@ -920,7 +922,7 @@ A.1.4.  LLM Tool obtains a set of token from Authorization Server
 Acknowledgments
 
    The authors wants to acknowledge the support and work of the
-   following indivisuals: Grese Hyseni (Raiffeisen Bank International,
+   following individuals: Grese Hyseni (Raiffeisen Bank International,
    grese.hyseni@rbinternational.com), Henrik Kroll (Raiffeisen Bank
    International, henrik.kroll@rbinternational.com).
 

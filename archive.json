@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-01T01:51:26.398812+00:00",
+  "timestamp": "2025-07-03T01:41:37.656881+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -55,15 +55,15 @@
       "id": "I_kwDOOIDCrM64Q37e",
       "title": "Security considerations",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/2",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "gffletch",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "I'd recommend pulling out each point of the security considerations into it's own sub-section. This will make it clearer to the reader.\n\nAlso, the point that the enterprise is \"leaking\" authorization policy into the response to the client is something that I think should be more clearly stated. Or maybe call out that if this is a concern plan to use the \"PAR\" extension. ",
       "createdAt": "2025-05-26T14:44:08Z",
-      "updatedAt": "2025-06-23T21:12:05Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-02T19:30:12Z",
+      "closedAt": "2025-07-02T19:30:12Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -289,6 +289,54 @@
           "updatedAt": "2025-06-28T19:44:49Z"
         }
       ]
+    },
+    {
+      "number": 14,
+      "id": "I_kwDOOIDCrM6-jqhB",
+      "title": "Is this proposal mutually exclusive with RFC 9470",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/14",
+      "state": "OPEN",
+      "author": "gffletch",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "RFC 9470 uses HTTP status code 401 and this specification use HTTP status code 403. This means that if the resource server needs to both enhance the authentication and the authorization requirements, it has to do so in two steps?\n\nOr does this specification allow for the requirements specified in RFC 9470 to also be included in the body instructions?",
+      "createdAt": "2025-07-02T19:53:29Z",
+      "updatedAt": "2025-07-02T19:53:29Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 15,
+      "id": "I_kwDOOIDCrM6-jx73",
+      "title": "User Managed Access 2.0 and this specification",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/15",
+      "state": "OPEN",
+      "author": "gffletch",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "UMA 2.0 allowed the client to request access to a resource endpoint with no access token at all. The resource server would then \"step-up\" the client but providing the location of the appropriate authorization server where the client would then engage the human and the AS to complete the necessary authorization steps until the client is issued an \"access token\" by which it can access the protected resource.\n\nDo we consider such a use case out of scope for this specification? In other words, if a request is made to the protected resource without an access token or an invalid access token, the result of the request is a failed access attempt and NO information is provided to the client as to why or what the client can do to obtain access.\n\nIf we consider the \"no access token\" use case in scope, then we might want to call it out explicitly. The combination of the `resource_metadata_uri` challenge and the `body_instructions` provides a mechanism to enable such a wide-ecosystem deployment.\n\nThis is somewhat described in the Appendix section A.1.3. ",
+      "createdAt": "2025-07-02T20:06:00Z",
+      "updatedAt": "2025-07-02T20:06:00Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 16,
+      "id": "I_kwDOOIDCrM6-j4qT",
+      "title": "Appendix - Does the LLM Tool have a valid access token for the external SaaS API",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/16",
+      "state": "OPEN",
+      "author": "gffletch",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "As best I can tell from the text, the user logs into the LLM Agent. The LLM Agent now has tokens issued by the Enterprise IDP that can be used the the LLM Tool. In A.1.2, the LLM Agent determine it needs to invoke an external tool via the LLM tool service. The LLM Agent can invoke the LLM Tool using an access token issued by the Enterprise IDP. However, that access token MUST NOT be sent to the external SaaS resource as that SaaS resource is in a completely different trust domain. It MAY be possible for the LLM Tool to obtain a JWT Authorization Grant from the Enterprise IDP for use with the SaaS Authorization server allowing the LLM Tool to obtain an access token issued by the SaaS Authorization Server. However, this requires the both the LLM Tool and the Enterprise IDP to know of the location of the SaaS Authorization Server and for the trust relationships between these servers to be pre-established.\n\nRegardless, I don't think what's described will work. \n\nAnother way to make it work, is to allow the LLM Tool to invoke the SaaS Resource API  with no access_token and then get back the necessary authentication/authorization requirements along with the location of the resource metadata URI. This would then allow use case flows very much akin to UMA.",
+      "createdAt": "2025-07-02T20:16:33Z",
+      "updatedAt": "2025-07-02T20:16:33Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [

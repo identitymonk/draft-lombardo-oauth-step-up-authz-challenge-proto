@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-03T01:41:37.656881+00:00",
+  "timestamp": "2025-07-06T01:48:59.021832+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -86,15 +86,15 @@
       "id": "I_kwDOOIDCrM64TIoX",
       "title": "Adding reference to RFC 9470 OAuth 2.0 Step Up Authentication Challenge Protocol",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/3",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "identitymonk",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Feedback from @aaronpk\n\n> Justify why a new spec and one the 403 and not a 401.\nHere we expect the token to have gone through conventional OAuth2 validation first before a decision is made on the content of the claims, including the authorization_details",
       "createdAt": "2025-05-26T20:39:21Z",
-      "updatedAt": "2025-06-23T21:12:23Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-03T20:49:50Z",
+      "closedAt": "2025-07-03T20:49:50Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -110,15 +110,15 @@
       "id": "I_kwDOOIDCrM64hTHH",
       "title": "Adding a FAPI 2.0 / RAR Use case",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/5",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "identitymonk",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2025-05-28T01:58:48Z",
-      "updatedAt": "2025-06-23T21:12:41Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-03T20:49:44Z",
+      "closedAt": "2025-07-03T20:49:44Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -134,15 +134,15 @@
       "id": "I_kwDOOIDCrM64hTNM",
       "title": "Adding a SMART on FHIR / RAR use case",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/6",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "identitymonk",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2025-05-28T01:59:04Z",
-      "updatedAt": "2025-06-23T21:13:01Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-03T20:49:36Z",
+      "closedAt": "2025-07-03T20:49:36Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -174,15 +174,15 @@
       "id": "I_kwDOOIDCrM679-mp",
       "title": "Refinement of 401 and 403 responses",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/8",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "yaron-zehavi",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "Discussion 26.06.2025:\n==============\n- Border between **Instructive** / **Informative** is hard to define. Therefore we'll:\n   - opt for a single error code\n   - Reuse WWW-Authenticate header (in line with step-up-authentication draft https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements)\n   - Provide large responses in the body with an indication in the WWW-Authenticate header, avoiding header size restrictions\n- We'll include a RFC 9728 resource_metadata_uri\n- Use ASC draft syntax describing expected token claims and values\n\nCombined Response\n=============\n\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", error_description=\"The authorization level is not met\", resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\", body_instructions=true\n\n**Missing expected access token scope**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\"loc\": \"/scope\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"resource:read\", \"resource:write\"]\n\t\t}]\n\t}\n}\n```\n\n**Missing authorization_details**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing authorization_details\",\n        \"details\": [{\n\t\t\t\"loc\": \"/authorization_details\",\n\t\t\t\"method\": \"simple\",\n\t\t\t\"value\": [{\n\t\t\t\t\"type\": \"payment_initiation\",\n\t\t\t\t\t\"actions\": [\n\t\t\t\t\t\t\"initiate\",\n\t\t\t\t\t\t\"status\",\n\t\t\t\t\t\t\"cancel\"\n\t\t\t\t\t],\n\t\t\t\t\t\"locations\": [\"https://example.com/payments\"],\n\t\t\t\t\t\"instructedAmount\": {\n\t\t\t\t\t\t\"currency\": \"EUR\",\n\t\t\t\t\t\t\"amount\": \"123.50\"\n\t\t\t\t\t},\n\t\t\t\t\t\"creditorName\": \"Merchant A\",\n\t\t\t\t\t\"creditorAccount\": {\n\t\t\t\t\t\t\"iban\": \"DE02100100109307118603\"\n\t\t\t\t\t},\n\t\t\t\t\t\"remittanceInformationUnstructured\": \"Ref Number Merchant\"\n\t\t\t}]\n\t\t}]\n\t}\n}\n```\n\n**Missing expected access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\t\"loc\": \"/email\",\n\t\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"simple\",\n\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t}]\n\t}\n}\n```",
       "createdAt": "2025-06-17T13:48:10Z",
-      "updatedAt": "2025-06-27T08:09:01Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-03T21:08:14Z",
+      "closedAt": "2025-07-03T21:08:14Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -271,15 +271,15 @@
       "id": "I_kwDOOIDCrM69098-",
       "title": "Feedback to -01 version",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/11",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "yaron-zehavi",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "- Introduction still mentions 2 error codes: \"with a new error codes, `failed_authorization` and `insufficient_authorization`\"\n- 4.1 \"The resource server responds with a 403 HTTP status code using the Bearer authentication scheme's error parameter\". Maybe not critical for now, but we should consider DPoP tokens as well, where `Bearer` doesn't fit\n- Typo in 5 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-client-action-following-a-s, Should read \"Step-Up\" where \"Setp-Up\" is written\n- 6 Authorization Response https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-authorization-response - Perhaps can be removed as it doesn't change anything in how AS works\n- Same for 7 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-information-conveyed-via-th",
       "createdAt": "2025-06-28T09:33:34Z",
-      "updatedAt": "2025-06-28T19:44:49Z",
-      "closedAt": null,
+      "updatedAt": "2025-07-03T20:49:28Z",
+      "closedAt": "2025-07-03T20:49:28Z",
       "comments": [
         {
           "author": "identitymonk",
@@ -302,9 +302,24 @@
       "labels": [],
       "body": "RFC 9470 uses HTTP status code 401 and this specification use HTTP status code 403. This means that if the resource server needs to both enhance the authentication and the authorization requirements, it has to do so in two steps?\n\nOr does this specification allow for the requirements specified in RFC 9470 to also be included in the body instructions?",
       "createdAt": "2025-07-02T19:53:29Z",
-      "updatedAt": "2025-07-02T19:53:29Z",
+      "updatedAt": "2025-07-03T20:57:38Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate\nMultiple challenges are allowed in one WWW-Authenticate header, and multiple WWW-Authenticate headers are allowed in one response\n\nSo +1 to support also RFC 9470 in the same response, as it contributes to interoperability and simplification.\nJust need to define the semantics (multiple headers or multiple challenges in the same header)",
+          "createdAt": "2025-07-03T16:09:02Z",
+          "updatedAt": "2025-07-03T16:09:02Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "We got this discussion and RFC 9470 states that:\n>  The logic examining the incoming access token to determine whether or not a challenge should be returned can be executed either before or after the conventional token-validation logic, be it based on JWT validation, introspection, or any other method. The resource server MAY return a challenge without verifying the client presented a valid token. However, this approach will leak the required properties of an authorization token to an actor who has not proven they can obtain a token for this resource server.\n\nwhile our proposal states that:\n> For this specification, the resource provider MUST examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.\n\nTherefore my stance my stance is that 401 to be returned for user based authentication, scope misalignment, or invalid token. While 403 is in any other case.\n\nThis will be a discussion at IETF 123\n\n\n",
+          "createdAt": "2025-07-03T20:57:37Z",
+          "updatedAt": "2025-07-03T20:57:37Z"
+        }
+      ]
     },
     {
       "number": 15,
@@ -318,9 +333,31 @@
       "labels": [],
       "body": "UMA 2.0 allowed the client to request access to a resource endpoint with no access token at all. The resource server would then \"step-up\" the client but providing the location of the appropriate authorization server where the client would then engage the human and the AS to complete the necessary authorization steps until the client is issued an \"access token\" by which it can access the protected resource.\n\nDo we consider such a use case out of scope for this specification? In other words, if a request is made to the protected resource without an access token or an invalid access token, the result of the request is a failed access attempt and NO information is provided to the client as to why or what the client can do to obtain access.\n\nIf we consider the \"no access token\" use case in scope, then we might want to call it out explicitly. The combination of the `resource_metadata_uri` challenge and the `body_instructions` provides a mechanism to enable such a wide-ecosystem deployment.\n\nThis is somewhat described in the Appendix section A.1.3. ",
       "createdAt": "2025-07-02T20:06:00Z",
-      "updatedAt": "2025-07-02T20:06:00Z",
+      "updatedAt": "2025-07-03T21:01:12Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "+1\n\nI think that's a valid and interoperable use-case we can easily support with `resource_metadata_uri` challenge and `body_instructions=false`",
+          "createdAt": "2025-07-03T14:22:12Z",
+          "updatedAt": "2025-07-03T14:22:12Z"
+        },
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This ties in nicely with a couple of discussions in AuthZEN right now... If\r\nthe RS implements a PEP, then the PDP MAY return an AuthZEN response with\r\nan obligation for Step-up.\r\n\r\nAt that point, indeed the RS could also initiate that flow with the AS\r\ndirectly... but then (because of the potential AuthZEN response contents),\r\nI wouldn't necessarily set body_instructions to false. I'd leave that open\r\n(true or false)... the AS could then also use any additional context\r\nprovided by the PDP.\r\n\r\nNevertheless, here we're saying that the burden of implementing the step-up\r\nflow could fall not only onto the Client's lap, but also the RS's... I\r\nguess something has to initiate/manage that flow, so supporting both ways\r\nseems fair, but I'm wondering if an RS implementer would want to take-on\r\nthat responsibility and added complexity?\r\n\r\nMoreover, if this RS/AS flow was implemented, then the CLient would be out\r\nof the loop, how would it then deal with a possible discrepancy between the\r\nuser-agent token and what it stored before? In UMA I believe the RS has a\r\nPAT token (right George ?), assuming that the PAT could be understood\r\nsomehow by the Client too if it ever saw it? dunno... but not an easy nut\r\nto crack I think.\r\n\r\nIn other words, it seems to me that cutting the Client out of the loop may\r\nbe dangerous and lead to discrepancies in access... I wouldn't add this to\r\nthis spec. my $0.02...\r\n\r\nCHeers,\r\n\r\n./\\.\r\n\r\nCheers,\r\n\r\n./\\\\.\r\n\r\nOn Thu, Jul 3, 2025 at 7:22\u202fAM yaron-zehavi ***@***.***>\r\nwrote:\r\n\r\n> *yaron-zehavi* left a comment\r\n> (identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto#15)\r\n> <https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/15#issuecomment-3032465664>\r\n>\r\n> +1\r\n>\r\n> I think that's a valid and interoperable use-case we can easily support\r\n> with resource_metadata_uri challenge and body_instructions=false\r\n>\r\n> \u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/15#issuecomment-3032465664>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/ABCDAWXSUHSKYORRT73GMTD3GU4CVAVCNFSM6AAAAACAU43SZCVHI2DSMVQWIX3LMV43OSLTON2WKQ3PNVWWK3TUHMZTAMZSGQ3DKNRWGQ>\r\n> .\r\n> You are receiving this because you are subscribed to this thread.Message\r\n> ID:\r\n> <identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/15/3032465664\r\n> @github.com>\r\n>\r\n\r\n\r\n-- \r\n\r\n\r\nAlex Babeanu\r\nLead Product Manager, AI Control  Suite\r\n\r\nt. +1 604 728 8130\r\ne. ***@***.***\r\nw. www.indykite.com\r\n",
+          "createdAt": "2025-07-03T15:37:52Z",
+          "updatedAt": "2025-07-03T15:37:52Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "@baboulebou i am not sure the point raised here has any relation to RS talking to AS. \n\n@gffletch I did not thought about this use case so that would contradict my previous answer for #14 but I like it. Will propose a PR on this\n",
+          "createdAt": "2025-07-03T21:01:12Z",
+          "updatedAt": "2025-07-03T21:01:12Z"
+        }
+      ]
     },
     {
       "number": 16,
@@ -334,9 +371,24 @@
       "labels": [],
       "body": "As best I can tell from the text, the user logs into the LLM Agent. The LLM Agent now has tokens issued by the Enterprise IDP that can be used the the LLM Tool. In A.1.2, the LLM Agent determine it needs to invoke an external tool via the LLM tool service. The LLM Agent can invoke the LLM Tool using an access token issued by the Enterprise IDP. However, that access token MUST NOT be sent to the external SaaS resource as that SaaS resource is in a completely different trust domain. It MAY be possible for the LLM Tool to obtain a JWT Authorization Grant from the Enterprise IDP for use with the SaaS Authorization server allowing the LLM Tool to obtain an access token issued by the SaaS Authorization Server. However, this requires the both the LLM Tool and the Enterprise IDP to know of the location of the SaaS Authorization Server and for the trust relationships between these servers to be pre-established.\n\nRegardless, I don't think what's described will work. \n\nAnother way to make it work, is to allow the LLM Tool to invoke the SaaS Resource API  with no access_token and then get back the necessary authentication/authorization requirements along with the location of the resource metadata URI. This would then allow use case flows very much akin to UMA.",
       "createdAt": "2025-07-02T20:16:33Z",
-      "updatedAt": "2025-07-02T20:16:33Z",
+      "updatedAt": "2025-07-03T21:07:13Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can't the LLM tool and the underlying SaaS API/app be in the same trust\r\ndomain, serviced by the same IdP? Seems like this could work in that case.\r\n\r\n./\\.\r\n\r\nOn Wed, Jul 2, 2025 at 1:16\u202fPM George Fletcher ***@***.***>\r\nwrote:\r\n\r\n> *gffletch* created an issue\r\n> (identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto#16)\r\n> <https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/16>\r\n>\r\n> As best I can tell from the text, the user logs into the LLM Agent. The\r\n> LLM Agent now has tokens issued by the Enterprise IDP that can be used the\r\n> the LLM Tool. In A.1.2, the LLM Agent determine it needs to invoke an\r\n> external tool via the LLM tool service. The LLM Agent can invoke the LLM\r\n> Tool using an access token issued by the Enterprise IDP. However, that\r\n> access token MUST NOT be sent to the external SaaS resource as that SaaS\r\n> resource is in a completely different trust domain. It MAY be possible for\r\n> the LLM Tool to obtain a JWT Authorization Grant from the Enterprise IDP\r\n> for use with the SaaS Authorization server allowing the LLM Tool to obtain\r\n> an access token issued by the SaaS Authorization Server. However, this\r\n> requires the both the LLM Tool and the Enterprise IDP to know of the\r\n> location of the SaaS Authorization Server and for the trust relationships\r\n> between these servers to be pre-established.\r\n>\r\n> Regardless, I don't think what's described will work.\r\n>\r\n> Another way to make it work, is to allow the LLM Tool to invoke the SaaS\r\n> Resource API with no access_token and then get back the necessary\r\n> authentication/authorization requirements along with the location of the\r\n> resource metadata URI. This would then allow use case flows very much akin\r\n> to UMA.\r\n>\r\n> \u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/16>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/ABCDAWRX4HZHJDN6DBRX7JT3GQ43RAVCNFSM6AAAAACAU5SOLGVHI2DSMVQWIX3LMV43ASLTON2WKOZTGE4TOMBXHAYTMMY>\r\n> .\r\n> You are receiving this because you are subscribed to this thread.Message\r\n> ID:\r\n> <identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/16\r\n> @github.com>\r\n>\r\n\r\n\r\n-- \r\n\r\n\r\nAlex Babeanu\r\nLead Product Manager, AI Control  Suite\r\n\r\nt. +1 604 728 8130\r\ne. ***@***.***\r\nw. www.indykite.com\r\n",
+          "createdAt": "2025-07-03T15:46:37Z",
+          "updatedAt": "2025-07-03T15:46:37Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "> However, that access token MUST NOT be sent to the external SaaS resource as that SaaS resource is in a completely different trust domain.\n\nthat not necessarily true @gffletch - the Agent, the Tool, and the Service might be in the same trust domain. Yes is they are in another trust domain that is another Draft for that: https://datatracker.ietf.org/doc/draft-parecki-oauth-identity-assertion-authz-grant/\n\nYes, now applying the point of #15 we could say that the it is either the access token received or no access token which is played by the tool against the service to get the Step-Up instructions.\n\nI recognize that [MCP Specifications out of 2025-06-18 section 2.6.2 release](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#token-handling) states that:\n> MCP servers MUST NOT accept or transit any other tokens.",
+          "createdAt": "2025-07-03T21:07:12Z",
+          "updatedAt": "2025-07-03T21:07:12Z"
+        }
+      ]
     }
   ],
   "pulls": [

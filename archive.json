@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-06T01:48:59.021832+00:00",
+  "timestamp": "2025-07-08T01:41:59.441040+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -181,7 +181,7 @@
       "labels": [],
       "body": "Discussion 26.06.2025:\n==============\n- Border between **Instructive** / **Informative** is hard to define. Therefore we'll:\n   - opt for a single error code\n   - Reuse WWW-Authenticate header (in line with step-up-authentication draft https://www.ietf.org/archive/id/draft-bertocci-oauth-step-up-authn-challenge-00.html#name-authentication-requirements)\n   - Provide large responses in the body with an indication in the WWW-Authenticate header, avoiding header size restrictions\n- We'll include a RFC 9728 resource_metadata_uri\n- Use ASC draft syntax describing expected token claims and values\n\nCombined Response\n=============\n\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", error_description=\"The authorization level is not met\", resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\", body_instructions=true\n\n**Missing expected access token scope**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\"loc\": \"/scope\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"resource:read\", \"resource:write\"]\n\t\t}]\n\t}\n}\n```\n\n**Missing authorization_details**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing authorization_details\",\n        \"details\": [{\n\t\t\t\"loc\": \"/authorization_details\",\n\t\t\t\"method\": \"simple\",\n\t\t\t\"value\": [{\n\t\t\t\t\"type\": \"payment_initiation\",\n\t\t\t\t\t\"actions\": [\n\t\t\t\t\t\t\"initiate\",\n\t\t\t\t\t\t\"status\",\n\t\t\t\t\t\t\"cancel\"\n\t\t\t\t\t],\n\t\t\t\t\t\"locations\": [\"https://example.com/payments\"],\n\t\t\t\t\t\"instructedAmount\": {\n\t\t\t\t\t\t\"currency\": \"EUR\",\n\t\t\t\t\t\t\"amount\": \"123.50\"\n\t\t\t\t\t},\n\t\t\t\t\t\"creditorName\": \"Merchant A\",\n\t\t\t\t\t\"creditorAccount\": {\n\t\t\t\t\t\t\"iban\": \"DE02100100109307118603\"\n\t\t\t\t\t},\n\t\t\t\t\t\"remittanceInformationUnstructured\": \"Ref Number Merchant\"\n\t\t\t}]\n\t\t}]\n\t}\n}\n```\n\n**Missing expected access token claims - email**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing expected access token scope\",\n        \"details\": [{\n\t\t\t\"loc\": \"/email\",\n\t\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Missing access token claims - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Missing token claims - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"exists\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"exists\"\n\t\t}]\n\t}\n}\n```\n\n**Expected claim values not met - gty, ccr, cmr**\n```json\n{\n    \"decision\": false,\n    \"context\": {\n        \"error_msg\": \"Insufficient token claim value - gty, ccr, cmr\",\n        \"details\": [{\n\t\t\"loc\": \"/gty\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"authorization_code_flow\", \"client_credentials\"]\n\t\t}, {\n\t\t\"loc\": \"/ccr\",\n\t\t\"method\": \"simple\",\n\t\t\"value\": \"urn:org:iana:client:assurance:level_1\"\n\t\t}, {\n\t\t\"loc\": \"/cmr\",\n\t\t\"method\": \"simple\",\n\t\t\"values\": [\"private_key_jwt\", \"client_secret_jwt\"]\n\t\t}]\n\t}\n}\n```",
       "createdAt": "2025-06-17T13:48:10Z",
-      "updatedAt": "2025-07-03T21:08:14Z",
+      "updatedAt": "2025-07-07T16:34:51Z",
       "closedAt": "2025-07-03T21:08:14Z",
       "comments": [
         {
@@ -225,6 +225,13 @@
           "body": "Thanks @identitymonk agree with comments. I made the change at night before going to bed and already had thoughts in the same direction as you. I've reworked it using your proposal.\n\nASC supports oneOf. See:\nhttps://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html#name-syntax-and-processing\n\n\"For values, the claim value must exactly match at least **one of** the values in the array\"\n\nHowever, ASC does not support 2Of, as in `scope` must contain 'A' and 'B'. I think when considering `scope` that's okay as also API GW's process it as oneOf. If it's a gap we can discuss it with Daniel Fett to enhance his draft",
           "createdAt": "2025-06-27T07:48:12Z",
           "updatedAt": "2025-06-27T08:09:01Z"
+        },
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "So the AuthZEN `context` response element is currently being reviewed, the changes I propose in authzen (just 'cause that task was assigned to me by the group - ok I volunteered...) add a bit more structure to the field. These would break-up the details of the PDP's Access decision into several categories within the `context` object:\n- reason\n- properties\n- obligations\n- metadata\n- environment\n\nHere's a non-normative example of what the `context` of an AuthZXEN response  _could_ look like (this is currently under review and is likely to change a bit). \n\n```json\n{\n  \"decision\": false,\n  \"context\": {\n    \"reason\": {\n      \"reason_admin\": {\n        \"insufficient_user_authentication\": \"Request failed policy C076E82F\"\n      },\n      \"reason_user\": {\n        \"insufficient_user_authentication\": \"This access requires strong authentication.\"\n      }\n    },\n    \"properties\": {\n      \"group\": \"Employee\",\n      \"department\": \"Sales\"\n    },\n    \"obligation\": [\n      {\n        \"acr_values\": \"urn:com:example:loa:3\",\n        \"amr_values\": \"mfa hwk\"\n      },\n      {\n        \"action\": {\n          \"type\": \"email\",\n          \"parameters\": {\n            \"to\": \"manager@example.com\",\n            \"subject\": \"Insufficient Assurance Level in Access Request\",\n            \"body\": \"<userid>\"\n          }\n        }\n      }\n    ],\n    \"metadata\": {\n      \"response-time\": 60,\n      \"response-time-unit\": \"ms\",\n      \"number-of-records\": 2000\n    },\n    \"environment\": {\n      \"ip\": \"10.10.0.1\",\n      \"datetime\": \"2025-06-27T18:03:07Z\",\n      \"os\": \"ubuntu24.04.2LTS-AMDx64\"\n    }\n  }\n}\n```\n\nI think what you propose here could be broken-up into `reason` + `obligation` + `properties`. Same information/data really, but just a more specific structure. \nthoughts?",
+          "createdAt": "2025-07-07T16:32:31Z",
+          "updatedAt": "2025-07-07T16:34:51Z"
         }
       ]
     },
@@ -240,7 +247,7 @@
       "labels": [],
       "body": "While it is possible for the RP to return a Request Object as defined in section 2.2 of JWT-Secured Authorization Request [RFC9101] signed by the RP for the client to send to the AS, as of now there is no standard for an RP to push a JAR to the AS using Pushed Authorization Request and pass the reference URI to the client.\n\nThe group need to discuss more this proposition.\n",
       "createdAt": "2025-06-23T13:46:02Z",
-      "updatedAt": "2025-06-23T18:05:45Z",
+      "updatedAt": "2025-07-07T15:27:22Z",
       "closedAt": null,
       "comments": [
         {
@@ -263,6 +270,27 @@
           "body": "I see, RP is also an OpenID term for Relying Party, which confused me",
           "createdAt": "2025-06-23T18:05:45Z",
           "updatedAt": "2025-06-23T18:05:45Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "It seems that the blocking requirement is the **MUST** in [section 4 of RFC9101 / The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)](https://datatracker.ietf.org/doc/html/rfc9101.html#section-4):\n\n> A [Request Object](https://datatracker.ietf.org/doc/html/rfc9101.html#request_object) ([Section 2.1](https://datatracker.ietf.org/doc/html/rfc9101.html#request_object)) is used to provide authorization request parameters for an OAuth 2.0 authorization request. It MUST contain all the parameters (including extension parameters) used to process the [OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc6749) [[RFC6749](https://datatracker.ietf.org/doc/html/rfc6749)] authorization request except the request and request_uri parameters that are defined in this document.",
+          "createdAt": "2025-07-07T14:35:38Z",
+          "updatedAt": "2025-07-07T14:35:38Z"
+        },
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This issue confuses me @identitymonk , the JAR spec defines a mechanism for the _client_ to initiate an OAuth Authz flow by reference. Sections 4 and 5 of the spec that you link (which I re-read just now) do go through this. The RS is not part of this flow.\n\nI think I commented on this before, but having the RS communicate with the AS directly seems like a very bad idea to me, you can't cut the Client out of the loop, else the Client and RS may see different authorization states...\n\nAnyway what am I missing about this issue here? Can it be resolved?",
+          "createdAt": "2025-07-07T14:50:28Z",
+          "updatedAt": "2025-07-07T14:51:09Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "@baboulebou :\n- You don't miss anything for this spec. JAR cannot be used for all the points, you, @yaron-zehavi , and I mentionned in this thread.\n- As indicated in the titile, this is a discussion \"issue\". Having the RS pre negotiating the elements with the AS especially on what it expects as `authorization_details` without having the client to think about it and be allowed to tamper it on its way in are the intents here and I think they remain relevant..... but effectively in a separate Draft that could make it back in this one if successful.\n\nI already have a name for it: PNAR - Pre Negotiated Authorization Request",
+          "createdAt": "2025-07-07T15:27:22Z",
+          "updatedAt": "2025-07-07T15:27:22Z"
         }
       ]
     },
@@ -278,7 +306,7 @@
       "labels": [],
       "body": "- Introduction still mentions 2 error codes: \"with a new error codes, `failed_authorization` and `insufficient_authorization`\"\n- 4.1 \"The resource server responds with a 403 HTTP status code using the Bearer authentication scheme's error parameter\". Maybe not critical for now, but we should consider DPoP tokens as well, where `Bearer` doesn't fit\n- Typo in 5 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-client-action-following-a-s, Should read \"Step-Up\" where \"Setp-Up\" is written\n- 6 Authorization Response https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-authorization-response - Perhaps can be removed as it doesn't change anything in how AS works\n- Same for 7 https://www.ietf.org/archive/id/draft-lombardo-oauth-step-up-authz-challenge-proto-01.html#name-information-conveyed-via-th",
       "createdAt": "2025-06-28T09:33:34Z",
-      "updatedAt": "2025-07-03T20:49:28Z",
+      "updatedAt": "2025-07-07T13:52:38Z",
       "closedAt": "2025-07-03T20:49:28Z",
       "comments": [
         {
@@ -287,6 +315,13 @@
           "body": "thanks @yaron-zehavi.\n\nAll taken into account.  One comment on:\n\n>4.1 \"The resource server responds with a 403 HTTP status code using the Bearer authentication scheme's error parameter\". Maybe not critical for now, but we should consider DPoP tokens as well, where Bearer doesn't fit\n\nDPoP is proof  that the token issued is played by the client it has been issued to. Here the step-up Authorization signal is not commenting on DPoP but on the content of the access token presented as bearer token (whatever along a DPoP token or not. So the scheme is the right one as the challenge is concerning the Access Token. Up to the client to present a new Bearer Access Token based on this information with or without a DPoP token.\n\nStill I think that the notion of the DPoP token verification is an interesting ask in the scope of AuthZEN (@baboulebou )",
           "createdAt": "2025-06-28T19:44:49Z",
           "updatedAt": "2025-06-28T19:44:49Z"
+        },
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@identitymonk - AuthZEN + DPoP, maybe in the next version ?",
+          "createdAt": "2025-07-07T13:52:38Z",
+          "updatedAt": "2025-07-07T13:52:38Z"
         }
       ]
     },
@@ -333,7 +368,7 @@
       "labels": [],
       "body": "UMA 2.0 allowed the client to request access to a resource endpoint with no access token at all. The resource server would then \"step-up\" the client but providing the location of the appropriate authorization server where the client would then engage the human and the AS to complete the necessary authorization steps until the client is issued an \"access token\" by which it can access the protected resource.\n\nDo we consider such a use case out of scope for this specification? In other words, if a request is made to the protected resource without an access token or an invalid access token, the result of the request is a failed access attempt and NO information is provided to the client as to why or what the client can do to obtain access.\n\nIf we consider the \"no access token\" use case in scope, then we might want to call it out explicitly. The combination of the `resource_metadata_uri` challenge and the `body_instructions` provides a mechanism to enable such a wide-ecosystem deployment.\n\nThis is somewhat described in the Appendix section A.1.3. ",
       "createdAt": "2025-07-02T20:06:00Z",
-      "updatedAt": "2025-07-03T21:01:12Z",
+      "updatedAt": "2025-07-07T15:34:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -356,6 +391,20 @@
           "body": "@baboulebou i am not sure the point raised here has any relation to RS talking to AS. \n\n@gffletch I did not thought about this use case so that would contradict my previous answer for #14 but I like it. Will propose a PR on this\n",
           "createdAt": "2025-07-03T21:01:12Z",
           "updatedAt": "2025-07-03T21:01:12Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "@gffletch from a discussion with Justin Richer, [GNAP ](https://datatracker.ietf.org/doc/rfc9635/) is the replacement of UMA 2.0 so I will use that as a base",
+          "createdAt": "2025-07-07T15:29:47Z",
+          "updatedAt": "2025-07-07T15:29:47Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "@yaron-zehavi  on\n\n> a valid and interoperable use-case we can easily support with `resource_metadata_uri` challenge and `body_instructions=false`\n\njust a point that `resource_metadata_uri` challenge and `body_instructions=false` is equivalent to `resource_metadata_uri` challenge without any mention of the `body_instructions` challenge as per the current draft.\n\n> The resource server MAY return a challenge with the key `body_instructions` When this challenge is present, its value MUST be set to `false` if no body is associated to the response from the resource server, or `true` if a body is associated to the response from the resource server.\n\nI will add the following text in the next PR to make it clearer:\n\n> If the challenge `body_instructions` is not present, the client MUST consider that it equivalent of receiving a `body_instructions` set to `false` and discard any body content from processing.\n\n",
+          "createdAt": "2025-07-07T15:34:18Z",
+          "updatedAt": "2025-07-07T15:34:18Z"
         }
       ]
     },

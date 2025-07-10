@@ -58,10 +58,10 @@ normative:
     title: Authorization API
     target: https://openid.github.io/authzen/
     author:
-    - name: Omri GAzitt
+    - name: Omri Gazitt
       role: editor
       org: Asserto
-    - name: DAvid Brossard
+    - name: David Brossard
       role: editor
       org: Axiomatics
     - name: Atul Tulshibagwale
@@ -159,7 +159,7 @@ In simple authorization scenarios, an authorization server will determine what c
 
 This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with one new error code, `insufficient_authorization`, which can be used by resource servers to signal to clients that the access token  presented with the request does not meet the authorization requirements of the resource server. This document also introduces authorization step-up challenges and associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
 
-The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Authorization Request [RFC9396], OAuth 2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured Authorization Request [RFC9101] for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.
+The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Authorization Request [RFC9396], OAuth 2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured Authorization Request [RFC9101] for this purpose. These extensions will make it possible to implement interoperable step-up authorization flows with minimal work from resource servers, clients, and authorization servers.
 
 # Conventions and Definitions
 
@@ -169,7 +169,7 @@ This specification uses the terms "access token", "authorization server", "autho
 
 # Protocol Overview
 
-The following is an end-to-end sequence of a typical step up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.
+The following is an end-to-end sequence of a typical step-up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.
 
     +----------+                                          +--------------+
     |          |                                          |              |
@@ -373,7 +373,7 @@ This specification facilitates the communication of requirements from a resource
 
 # Resource Server Metadata
 
-Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in [RFC9728], the value `step_up_authorization_supported`. The presence of `step_up_authorization_supported` in the resource server metadata document signals that the resource server MAY honor the issuance of step-up authorization challenge if its sees fit.
+Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in [RFC9728], the value `step_up_authorization_supported`. The presence of `step_up_authorization_supported` in the resource server metadata document signals that the resource server MAY honor the issuance of step-up authorization challenge if it sees fit.
 
 # Security Considerations
 
@@ -558,9 +558,9 @@ LLM Agent discovers the Authorization Server configuration per [RFC9728].
       ]
     }
 
-LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
+LLM Agent has learned all necessary endpoints and supported capabilities to obtain an access token for the external tool.
 
-### LLM Tool obtains a set of token from Authorization Server protecting the API
+### LLM Tool obtains a set of tokens from Authorization Server protecting the API
 
 The LLM tool redirects the LLM Agent for an authorization request:
 

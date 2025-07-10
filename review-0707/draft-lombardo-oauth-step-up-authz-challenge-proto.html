@@ -1363,18 +1363,26 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
               <p id="section-3-4.2.2.2.1">The resource server returns using a specific error code a challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.<a href="#section-3-4.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<ul class="normal">
-<li class="normal" id="section-3-4.2.3.1">
-              <p id="section-3-4.2.3.1.1">In any case, afterwards:
-3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.
-4. A new and adequate authorization sequence takes place between the user agent, the client, and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on  the resource server's response. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.
-5. The client repeats the request from step 1, presenting the newly obtained access token.
-6. The resource server finds the new access token satisfies its requirements and proceeds to perform the request.<a href="#section-3-4.2.3.1.1" class="pilcrow">¶</a></p>
 </li>
-          </ul>
+        <li class="normal" id="section-3-4.3">
+          <p id="section-3-4.3.1">In any case, afterwards:<a href="#section-3-4.3.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-4.3.2">
+<li id="section-3-4.3.2.1">
+              <p id="section-3-4.3.2.1.1">The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.<a href="#section-3-4.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-3-4.3.2.2">
+              <p id="section-3-4.3.2.2.1">The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on the resource server's guidance. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.<a href="#section-3-4.3.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-3-4.3.2.3">
+              <p id="section-3-4.3.2.3.1">The client repeats the request from step 1, presenting the newly obtained access token.<a href="#section-3-4.3.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-3-4.3.2.4">
+              <p id="section-3-4.3.2.4.1">The resource server finds the new access token satisfies its requirements and proceeds to perform the request.<a href="#section-3-4.3.2.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
 </li>
       </ul>
-<p id="section-3-5">Such protocol flow is coherent with the expectations of <span>[<a href="#FAPI2.0-Security-Profiles" class="cite xref">FAPI2.0-Security-Profiles</a>]</span>, section 2.1.10.2.1 of <span>[<a href="#hl7.fhir.uv.smart-app-launch" class="cite xref">hl7.fhir.uv.smart-app-launch</a>]</span> .<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-5">Such protocol flow is coherent with the expectations of <span>[<a href="#FAPI2.0-Security-Profiles" class="cite xref">FAPI2.0-Security-Profiles</a>]</span>, section 2.1.10.2.1 of <span>[<a href="#hl7.fhir.uv.smart-app-launch" class="cite xref">hl7.fhir.uv.smart-app-launch</a>]</span>.<a href="#section-3-5" class="pilcrow">¶</a></p>
 <p id="section-3-6">The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".<a href="#section-3-6" class="pilcrow">¶</a></p>
 <p id="section-3-7">This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) <span>[<a href="#RFC9068" class="cite xref">RFC9068</a>]</span> or is validated via introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> or whether the resource server is performing this assessment natively or by offloading the assessment to a policy decision point as defined in <span>[<a href="#D-OpenID-AuthZEN" class="cite xref">D-OpenID-AuthZEN</a>]</span>, <span>[<a href="#XACML" class="cite xref">XACML</a>]</span> or NIST's ABAC <span>[<a href="#SP.800-162" class="cite xref">SP.800-162</a>]</span>. This document rather describes how the resource server tells the client what type of authorization it needs to get from the authorization server for a request.<a href="#section-3-7" class="pilcrow">¶</a></p>
 <p id="section-3-8">The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particular authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.<a href="#section-3-8" class="pilcrow">¶</a></p>

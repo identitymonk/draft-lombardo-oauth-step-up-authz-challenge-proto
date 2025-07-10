@@ -202,7 +202,7 @@ _Figure 1: Abstract Protocol Flow_
 
 - Case of an initial request not bearing an access token:
   1. The client requests a protected resource without presenting an access token.
-  2. The resource server returns using a specific error code a challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.
+  2. The resource server returns a specific challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.
 
 - In any case, afterwards:
   3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.

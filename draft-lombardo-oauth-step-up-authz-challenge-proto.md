@@ -204,13 +204,13 @@ _Figure 1: Abstract Protocol Flow_
   1. The client requests a protected resource without presenting an access token.
   2. The resource server returns using a specific error code a challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.
 
-  - In any case, afterwards:
+- In any case, afterwards:
   3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.
-  4. A new and adequate authorization sequence takes place between the user agent, the client, and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on  the resource server's response. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.
+  4. The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on the resource server's guidance. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.
   5. The client repeats the request from step 1, presenting the newly obtained access token.
   6. The resource server finds the new access token satisfies its requirements and proceeds to perform the request.
 
-Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch] .
+Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch].
 
 The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
 

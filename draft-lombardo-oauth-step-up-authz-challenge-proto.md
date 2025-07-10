@@ -54,6 +54,7 @@ normative:
   RFC6750: # OAuth 2.0 Authorization Framework: Bearer Token Usage
   RFC9068: # JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
   RFC9470: # OAuth 2.0 Step Up Authentication Challenge Protocol
+  RFC9396: # Rich Authorization Request
   D-OpenID-AuthZEN: #AuthZEN
     title: Authorization API
     target: https://openid.github.io/authzen/
@@ -80,13 +81,9 @@ normative:
         org: Authlete
 
 informative:
-  RFC9396: # Rich Authorization Request
-  RFC9126: # Pushed Authorization Request
-  RFC9101: # JWT-Secured Authorization Request
   RFC7662: # Introspection
   RFC9449: # DPoP
   I-D.ietf-oauth-v2-1: # OAuth 2.1
-  I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
   XACML:
     title: eXtensible Access Control Markup Language (XACML) Version 1.1
     target: https://www.oasis-open.org/committees/xacml/repository/cs-xacml-specification-1.1.pdf
@@ -155,11 +152,11 @@ the access token of the current request does not meet its authorization requirem
 
 # Introduction
 
-In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known a provisioning time. [RFC9470] helped improve the feedback a resource server can provide to a client in case the user authentication method, authentication class, or the freshness of the authentication event did not meet the requirements expected by the resource server. Although those approaches are viable in many situations, it falls short in several important circumstances, for instance, in [FAPI2.0-Security-Profiles] or [hl7.fhir.uv.smart-app-launch] regulated APIs when they require peculiar client authentication mechanisms to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.
+In simple authorization scenarios, an authorization server will determine what claims to embed in the tokens to issue on the basis of aspects such as the scopes requested, the resource, the identity of the client, and other characteristics known at provisioning time. [RFC9470] helped improve the feedback a resource server can provide to a client in case the user authentication method, authentication class, or the freshness of the authentication event did not meet the requirements expected by the resource server. Although those approaches are viable in many situations, it falls short in several important circumstances, for instance, in [FAPI2.0-Security-Profiles] or [hl7.fhir.uv.smart-app-launch] regulated APIs when they require peculiar client authentication mechanisms to be enforced or transaction specific details to be present in the token. These requirements may depend upon resource access rules or policies implemented at a policy decision point it relies on, using a logic that is opaque to the authorization server.
 
 This document extends the collection of error codes defined by [RFC6750] and by [RFC9470] with one new error code, `insufficient_authorization`, which can be used by resource servers to signal to clients that the access token  presented with the request does not meet the authorization requirements of the resource server. This document also introduces authorization step-up challenges and associated payload definitions. The resource server can use these payloads to explicitly communicate to the client its authorization requirements.
 
-The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Authorization Request [RFC9396], OAuth 2.0 Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured Authorization Request [RFC9101] for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.
+The client can then use this information to reach back to the authorization server with a new authorization request that specifies the additional authorization details required for issuing tokens useable at the resource. This document does not describe any new methods to perform this additional authorization request but will rely on OAuth 2.0 Rich Authorization Request [RFC9396] for this purpose. These extensions will make it possible to implement interoperable step up authorization flows with minimal work from resource servers, clients, and authorization servers.
 
 # Conventions and Definitions
 
@@ -205,13 +202,13 @@ _Figure 1: Abstract Protocol Flow_
 
 - Case of an initial request not bearing an access token:
   1. The client requests a protected resource without presenting an access token.
-  2. The resource server determines returns a challenge describing (using a combination of error code and payload details) what authorization server need to be contacted and optionally which additional requirements must be met to allow the request.
+  2. The resource server returns using a specific error code a challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.
 
-- In any case, afterwards:
+  - In any case, afterwards:
   3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.
-  4. A new and adequate authorization sequence takes place between the user agent, the client, and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The authorization server uses the payload for the resource server's response forwarded by the client to initiate the right grant flow type or to ensure that the authorization details are met. The authorization server may here also contact an external policy decision point to request evaluation of complex business access policies. The newly minted access token contains or references information about the authorization elements required, including but not limited to the claims defined in [I-D.lombardo-oauth-client-extension-claims].
+  4. A new and adequate authorization sequence takes place between the user agent, the client, and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on  the resource server's response. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.
   5. The client repeats the request from step 1, presenting the newly obtained access token.
-  6. The resource server finds that the authorization details, grant flow or client authentication mechanism used during the acquisition of the new access token complies with its requirements and returns the representation of the requested protected resource.
+  6. The resource server finds the new access token satisfies its requirements and proceeds to perform the request.
 
 Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch] .
 

@@ -199,18 +199,25 @@ The following is an end-to-end sequence of a typical step up authorization scena
 
 _Figure 1: Abstract Protocol Flow_
 
-1. The client requests a protected resource, presenting an access token.
-2. The resource server determines that the circumstances in which the presented access token was obtained offer insufficient authorization details, wrong grant flow, or inadequate client authentication mechanism; it therefore denies the request and returns a challenge describing (using a combination of error code and payload details) what authorization requirements must be met to allow the request. It is possible here for the resource server to rely on the responses from an external policy decision point.
-3. The client redirects the user agent to the authorization server with an authorization request that includes the authorization details indicated by the resource server in the previous step.
-4. A new and adequate authorization sequence takes place between the user agent, the client and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The authorization server uses the payload for the resource server's response forwarded by the client to initiate the right grant flow type or to ensure that the authorization details are met. The authorization server may here also contact an external policy decision point to request evaluation of complex business access policies. The newly minted access token contains or references information about the authorization elements required, including but not limited to the claims defined in [I-D.lombardo-oauth-client-extension-claims].
-5. The client repeats the request from step 1, presenting the newly obtained access token.
-6. The resource server finds that the authorization details, grant flow or client authentication mechanism used during the acquisition of the new access token complies with its requirements and returns the representation of the requested protected resource.
+- Case of an initial request bearing an access token:
+  1. The client requests a protected resource, presenting an access token.
+  2. The resource server determines that the circumstances in which the presented access token was obtained offer insufficient authorization details, wrong grant flow, or inadequate client authentication mechanism; it therefore denies the request and returns a challenge describing (using a combination of error code and payload details) what authorization requirements must be met to allow the request. It is possible here for the resource server to rely on the responses from an external policy decision point.
 
-Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles] and section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch].
+- Case of an initial request not bearing an access token:
+  1. The client requests a protected resource without presenting an access token.
+  2. The resource server determines returns a challenge describing (using a combination of error code and payload details) what authorization server need to be contacted and optionally which additional requirements must be met to allow the request.
+
+- In any case, afterwards:
+  3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.
+  4. A new and adequate authorization sequence takes place between the user agent, the client, and the authorization server, resulting in the issuance of a new access token that encapsulates the authorization level, or ceremonies requested by the resource server. The authorization server uses the payload for the resource server's response forwarded by the client to initiate the right grant flow type or to ensure that the authorization details are met. The authorization server may here also contact an external policy decision point to request evaluation of complex business access policies. The newly minted access token contains or references information about the authorization elements required, including but not limited to the claims defined in [I-D.lombardo-oauth-client-extension-claims].
+  5. The client repeats the request from step 1, presenting the newly obtained access token.
+  6. The resource server finds that the authorization details, grant flow or client authentication mechanism used during the acquisition of the new access token complies with its requirements and returns the representation of the requested protected resource.
+
+Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch] .
 
 The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
 
-This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource provider is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes how the resource provider tells the client what type of authorization it needs to get from the authorization server for a request.
+This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource server is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes how the resource server tells the client what type of authorization it needs to get from the authorization server for a request.
 
 The terms "authorization state" and "step up" are metaphors in this specification. These metaphors do not suggest that there is an absolute hierarchy of authorization states expressed in interoperable fashion. The notion of a state emerges from the fact that the resource server may only want to accept certain authorization mechanisms. When presented with a token derived from particular authorization mechanisms (i.e., a given authorization state) that it does not want to accept (i.e., below the threshold it will accept), the resource server seeks to step up (i.e., renegotiate) from the current authorization state to one that it may accept. The "step up" metaphor is intended to convey a shift from the original authorization state to one that is acceptable to the resource server.
 
@@ -250,6 +257,8 @@ Note: the logic through which the client determines how to use any information o
 
 The resource server MAY return a challenge with the key `body_instructions` When this challenge is present, its value MUST be set to `false` if no body is associated to the response from the resource server, or `true` if a body is associated to the response from the resource server.
 
+If the challenge `body_instructions` is not present, the client MUST consider that it equivalent of receiving a `body_instructions` set to `false` and discard any body content from processing.
+
 #### Challenge Associated Body Content
 
 If a body is attached to the to the response from the resource server, it MUST be formatted as an AuthZEN [D-OpenID-AuthZEN] response which MUST contain the following keys:
@@ -280,12 +289,14 @@ The following are non normative examples of some step-up authorization challenge
     {
       "decision": false,
       "context": {
-            "error_msg": "Missing expected access token scope",
-            "details": [{
-        "loc": "/scope",
-        "method": "simple",
-        "values": ["resource:read", "resource:write"]
-        }]
+        "error_msg": "Missing expected access token scope",
+        "details": [
+          {
+            "loc": "/scope",
+            "method": "simple",
+            "values": ["resource:read", "resource:write"]
+          }
+        ]
       }
     }
 
@@ -295,31 +306,33 @@ The following are non normative examples of some step-up authorization challenge
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
 
     {
-        "decision": false,
-        "context": {
-            "error_msg": "Missing authorization_details",
-            "details": [{
-          "loc": "/authorization_details",
-          "method": "simple",
-          "value": [{
-            "type": "payment_initiation",
-              "actions": [
-                "initiate",
-                "status",
-                "cancel"
-              ],
-              "locations": ["https://example.com/payments"],
-              "instructedAmount": {
-                "currency": "EUR",
-                "amount": "123.50"
-              },
-              "creditorName": "Merchant A",
-              "creditorAccount": {
-                "iban": "DE02100100109307118603"
-              },
-              "remittanceInformationUnstructured": "Ref Number Merchant"
-          }]
-        }]
+      "decision": false,
+      "context": {
+        "error_msg": "Missing authorization_details",
+        "details": [
+          {
+            "loc": "/authorization_details",
+            "method": "simple",
+            "value": [{
+              "type": "payment_initiation",
+                "actions": [
+                  "initiate",
+                  "status",
+                  "cancel"
+                ],
+                "locations": ["https://example.com/payments"],
+                "instructedAmount": {
+                  "currency": "EUR",
+                  "amount": "123.50"
+                },
+                "creditorName": "Merchant A",
+                "creditorAccount": {
+                  "iban": "DE02100100109307118603"
+                },
+                "remittanceInformationUnstructured": "Ref Number Merchant"
+            }]
+          }
+        ]
       }
     }
 
@@ -329,13 +342,15 @@ The following are non normative examples of some step-up authorization challenge
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
 
     {
-        "decision": false,
-        "context": {
-            "error_msg": "Missing expected access token scope",
-            "details": [{
-          "loc": "/email",
-          "method": "exists"
-        }]
+      "decision": false,
+      "context": {
+        "error_msg": "Missing expected access token scope",
+        "details": [
+          {
+            "loc": "/email",
+            "method": "exists"
+          }
+        ]
       }
     }
 
@@ -345,19 +360,23 @@ The following are non normative examples of some step-up authorization challenge
     WWW-Authenticate: Bearer error="insufficient_authorization", error_description="The authorization level is not met",  body_instructions=true
 
     {
-        "decision": false,
-        "context": {
-            "error_msg": "Missing token claims - gty, ccr, cmr",
-            "details": [{
-        "loc": "/gty",
-        "method": "exists"
-        }, {
-        "loc": "/ccr",
-        "method": "exists"
-        }, {
-        "loc": "/cmr",
-        "method": "exists"
-        }]
+      "decision": false,
+      "context": {
+        "error_msg": "Missing token claims - gty, ccr, cmr",
+        "details": [
+          {
+            "loc": "/gty",
+            "method": "exists"
+          },
+          {
+            "loc": "/ccr",
+            "method": "exists"
+          },
+          {
+            "loc": "/cmr",
+            "method": "exists"
+          }
+        ]
       }
     }
 
@@ -383,6 +402,7 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 - JWT access tokens [RFC9068],
 - Bearer WWW-Authenticate [RFC6750],
 - Token introspection [RFC7662],
+- OAuth 2.0 Step Up Authentication Challenge Protocol [RFC9470],
 - OAuth2 Protected Resource Metadata [RFC9728],
 - Rich Authorization Request [RFC9396],
 - Push Authorization Request [RFC9126],
@@ -391,13 +411,13 @@ This specification adds to previously defined OAuth mechanisms. Their respective
 
 ## Scope
 
-This specification does not attempt to define the mechanics by which access control is made by the resource provider and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4.
+This specification does not attempt to define the mechanics by which access control is made by the resource server and how the result of such access control evaluation should be translated into one of the challenges defined in Section 4.
 
 This specification does not attempt to define the mechanics by which extended authorization requests are processed and validated by the authorization server.
 
 ## Validation Of Token
 
-For this specification, the resource provider MUST examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.
+For this specification, if provided by the client, the resource server MUST examine the incoming access token and enforce the conventional token-validation logic - be it based on JWT validation, introspection, or any other method - before determining whether or not a challenge should be returned.
 
 ## Step-Up Authorization Challenge Payload
 

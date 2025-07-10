@@ -130,7 +130,7 @@ Table of Contents
    In simple authorization scenarios, an authorization server will
    determine what claims to embed in the tokens to issue on the basis of
    aspects such as the scopes requested, the resource, the identity of
-   the client, and other characteristics known a provisioning time.
+   the client, and other characteristics known at provisioning time.
    [RFC9470] helped improve the feedback a resource server can provide
    to a client in case the user authentication method, authentication
    class, or the freshness of the authentication event did not meet the
@@ -159,12 +159,10 @@ Table of Contents
    the additional authorization details required for issuing tokens
    useable at the resource.  This document does not describe any new
    methods to perform this additional authorization request but will
-   rely on OAuth 2.0 Rich Authorization Request [RFC9396], OAuth 2.0
-   Pushed Authorization Request [RFC9126], or OAuth 2.0 JWT-Secured
-   Authorization Request [RFC9101] for this purpose.  These extensions
-   will make it possible to implement interoperable step up
-   authorization flows with minimal work from resource servers, clients,
-   and authorization servers.
+   rely on OAuth 2.0 Rich Authorization Request [RFC9396] for this
+   purpose.  These extensions will make it possible to implement
+   interoperable step up authorization flows with minimal work from
+   resource servers, clients, and authorization servers.
 
 2.  Conventions and Definitions
 
@@ -233,42 +231,31 @@ Table of Contents
       1.  The client requests a protected resource without presenting an
           access token.
 
-      2.  The resource server determines returns a challenge describing
-          (using a combination of error code and payload details) what
-          authorization server need to be contacted and optionally which
-          additional requirements must be met to allow the request.
+      2.  The resource server returns using a specific error code a
+          challenge describing which authorization server needs to be
+          contacted and optionally which additional requirements must be
+          met to allow the request.
 
-   *  In any case, afterwards:
-
-      1.  The client redirects the user agent to the authorization
-          server with an authorization request and includes, if
-          presented by the resource server in the previous step, the
-          authorization parameters, details, and extensions indicated by
-          the resource server.
-
-      2.  A new and adequate authorization sequence takes place between
-          the user agent, the client, and the authorization server,
-          resulting in the issuance of a new access token that
-          encapsulates the authorization level, or ceremonies requested
-          by the resource server.  The authorization server uses the
-          payload for the resource server's response forwarded by the
-          client to initiate the right grant flow type or to ensure that
-          the authorization details are met.  The authorization server
-          may here also contact an external policy decision point to
-          request evaluation of complex business access policies.  The
-          newly minted access token contains or references information
-          about the authorization elements required, including but not
-          limited to the claims defined in
-          [I-D.lombardo-oauth-client-extension-claims].
-
-      3.  The client repeats the request from step 1, presenting the
-          newly obtained access token.
-
-      4.  The resource server finds that the authorization details,
-          grant flow or client authentication mechanism used during the
-          acquisition of the new access token complies with its
-          requirements and returns the representation of the requested
-          protected resource.
+      -  In any case, afterwards: 3.  The client redirects the user
+         agent to the authorization server with an authorization request
+         and includes, if presented by the resource server in the
+         previous step, the authorization parameters, details, and
+         extensions indicated by the resource server. 4.  A new and
+         adequate authorization sequence takes place between the user
+         agent, the client, and the authorization server, resulting in
+         the issuance of a new access token that encapsulates the
+         authorization level, or ceremonies requested by the resource
+         server.  The client initiates the right grant flow type with
+         the appropriate authorization details with the authorization
+         server based on the resource server's response.  The
+         authorization server evaluates the request and ensures its
+         requirements are met.  If so, the authorization server will
+         issue a new access token that contains or references
+         information about the elements requested. 5.  The client
+         repeats the request from step 1, presenting the newly obtained
+         access token. 6.  The resource server finds the new access
+         token satisfies its requirements and proceeds to perform the
+         request.
 
    Such protocol flow is coherent with the expectations of
    [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of
@@ -528,8 +515,8 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
   }
 }
 
-      Note: gty, ccr, and cmr are claims defined by
-      [I-D.lombardo-oauth-client-extension-claims]
+      Note: gty, ccr, and cmr are claims defined by [I-D.lombardo-oauth-
+      client-extension-claims]
 
 5.  Client Action Following A Step-Up Authorization Challenge
 
@@ -673,6 +660,11 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               Access Tokens", RFC 9068, DOI 10.17487/RFC9068, October
               2021, <https://www.rfc-editor.org/rfc/rfc9068>.
 
+   [RFC9396]  Lodderstedt, T., Richer, J., and B. Campbell, "OAuth 2.0
+              Rich Authorization Requests", RFC 9396,
+              DOI 10.17487/RFC9396, May 2023,
+              <https://www.rfc-editor.org/rfc/rfc9396>.
+
    [RFC9470]  Bertocci, V. and B. Campbell, "OAuth 2.0 Step Up
               Authentication Challenge Protocol", RFC 9470,
               DOI 10.17487/RFC9470, September 2023,
@@ -702,13 +694,6 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
               v2-1-13>.
 
-   [I-D.lombardo-oauth-client-extension-claims]
-              Lombardo, J. and A. Babeanu, "OAuth 2.0 client extension
-              claims", Work in Progress, Internet-Draft, draft-lombardo-
-              oauth-client-extension-claims-02, 30 June 2025,
-              <https://datatracker.ietf.org/doc/html/draft-lombardo-
-              oauth-client-extension-claims-02>.
-
    [MCP]      "Model Context Protocol", n.d.,
               <https://modelcontextprotocol.io/specification/2025-06-18/
               basic>.
@@ -716,21 +701,6 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    [RFC7662]  Richer, J., Ed., "OAuth 2.0 Token Introspection",
               RFC 7662, DOI 10.17487/RFC7662, October 2015,
               <https://www.rfc-editor.org/rfc/rfc7662>.
-
-   [RFC9101]  Sakimura, N., Bradley, J., and M. Jones, "The OAuth 2.0
-              Authorization Framework: JWT-Secured Authorization Request
-              (JAR)", RFC 9101, DOI 10.17487/RFC9101, August 2021,
-              <https://www.rfc-editor.org/rfc/rfc9101>.
-
-   [RFC9126]  Lodderstedt, T., Campbell, B., Sakimura, N., Tonge, D.,
-              and F. Skokan, "OAuth 2.0 Pushed Authorization Requests",
-              RFC 9126, DOI 10.17487/RFC9126, September 2021,
-              <https://www.rfc-editor.org/rfc/rfc9126>.
-
-   [RFC9396]  Lodderstedt, T., Richer, J., and B. Campbell, "OAuth 2.0
-              Rich Authorization Requests", RFC 9396,
-              DOI 10.17487/RFC9396, May 2023,
-              <https://www.rfc-editor.org/rfc/rfc9396>.
 
    [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
               Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of

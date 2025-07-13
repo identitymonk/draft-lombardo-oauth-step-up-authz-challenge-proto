@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-08T01:41:59.441040+00:00",
+  "timestamp": "2025-07-13T01:53:20.106297+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -368,7 +368,7 @@
       "labels": [],
       "body": "UMA 2.0 allowed the client to request access to a resource endpoint with no access token at all. The resource server would then \"step-up\" the client but providing the location of the appropriate authorization server where the client would then engage the human and the AS to complete the necessary authorization steps until the client is issued an \"access token\" by which it can access the protected resource.\n\nDo we consider such a use case out of scope for this specification? In other words, if a request is made to the protected resource without an access token or an invalid access token, the result of the request is a failed access attempt and NO information is provided to the client as to why or what the client can do to obtain access.\n\nIf we consider the \"no access token\" use case in scope, then we might want to call it out explicitly. The combination of the `resource_metadata_uri` challenge and the `body_instructions` provides a mechanism to enable such a wide-ecosystem deployment.\n\nThis is somewhat described in the Appendix section A.1.3. ",
       "createdAt": "2025-07-02T20:06:00Z",
-      "updatedAt": "2025-07-07T15:34:18Z",
+      "updatedAt": "2025-07-11T15:52:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -405,6 +405,13 @@
           "body": "@yaron-zehavi  on\n\n> a valid and interoperable use-case we can easily support with `resource_metadata_uri` challenge and `body_instructions=false`\n\njust a point that `resource_metadata_uri` challenge and `body_instructions=false` is equivalent to `resource_metadata_uri` challenge without any mention of the `body_instructions` challenge as per the current draft.\n\n> The resource server MAY return a challenge with the key `body_instructions` When this challenge is present, its value MUST be set to `false` if no body is associated to the response from the resource server, or `true` if a body is associated to the response from the resource server.\n\nI will add the following text in the next PR to make it clearer:\n\n> If the challenge `body_instructions` is not present, the client MUST consider that it equivalent of receiving a `body_instructions` set to `false` and discard any body content from processing.\n\n",
           "createdAt": "2025-07-07T15:34:18Z",
           "updatedAt": "2025-07-07T15:34:18Z"
+        },
+        {
+          "author": "gffletch",
+          "authorAssociation": "NONE",
+          "body": "A couple of comments...\n\nRegarding GNAP: Justin worked to include a lot of the UMA requirements into the GNAP protocol. I'm not sure I'd say it is an exact replacement.\n\nOne of the key goals of UMA is to allow for \"Alice to Bob\" sharing. Here is a [presentation](https://www.slideshare.net/CloudIDSummit/cis-2015-user-managed-access) I did at CIS in 2015. It has an example of Alice sharing calendar information with Bob to allow Bob to schedule a meeting.\n\nAnother key feature of UMA is to support wide eco-system deployments. Meaning, that client software may request access to a resource without any pre-registration of the client software and the client be directed to the appropriate AS to both dynamically register and then authorize in order to access the client.\n\nIn the UMA model, the AS being used can be different per requested resource meaning that if the protected resource is a photo site, then Alice could choose one AS to protect her resources at the site and Bob could use a completely different AS to protect his resources. While not explicitly prohibited by this draft, I don't see this use case being a key requirement for this specification.\n\nUMA really has two core specifications:\n1. [User Managed Access 2.0 grant for OAuth 2.0 Authorization](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html) - this is the specification for how a software client accesses a UMA protected resource. The basic flow is pretty identical to what is presented in this specification. What's different is that UMA defined some unique mechanisms for the client to remember prior authorizations with the AS to make future authorizations simpler and a better user experience. UMA also called the issued \"access token\" the \"Requesting Party Token\" because the token itself does not contain the authorization claims but rather points to state in the AS that holds the authorization claims for this particular request.\n2. [Federated Authorization for User Managed Access 2.0](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-federated-authz-2.0.html) - this specification covers how the resource server works with the different authorization servers to externalize the authorization policy for the protected resource to the AS. If this UMA requirement is out-of-scope then we don't really need to consider it.\n\nRegarding how UMA allowed a client to request access to a protected resource it works like this...\n\n1. client makes a request without a requesting party token (RPT)\n2. Protected resource (RS) checks with the appropriate AS to obtain a permission ticket (this ticket points to the state of which client and resource is being accessed)\n3. RS returns a HTTP 401 Unauthorized response with a WWW-Authenticate header `WWW-Authenticate: UMA realm=\"example\", as_uri=\"https://as.example.com\", ticket=\"afwrtasgfaw3twarea\" `\n4. client performs discovery on the `as_uri` to obtain information about the AS\n5. client optionally dynamically registers with the AS (if needed)\n6. client requests authorization with the AS (via the /token endpoint) using the UMA defined grant type\n7. AS redirects the client to an \"interactive\" endpoint where the user of the client can authorize with the AS\n8. AS presents challenges and such until the user successfully authorizes\n9. AS redirects back to the client specifying a `ticket` value\n10. client makes a request back to the /token endpoint using the UMA grant to obtain the RPT\n11. AS issues the client an RPT\n12. client makes a request to the RS passing the RPT\n\nThat's the high level flow. I'm happy to write a blurb for the spec on compare / contrast UMA. I'd love thoughts on what should be included in such a discussion.",
+          "createdAt": "2025-07-11T15:52:46Z",
+          "updatedAt": "2025-07-11T15:52:46Z"
         }
       ]
     },
@@ -821,6 +828,105 @@
       },
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 17,
+      "id": "PR_kwDOOIDCrM6eU1Te",
+      "title": "incorporating feedback from George and Yaron",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/17",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Incorporating feedback from #14 #15",
+      "createdAt": "2025-07-10T14:55:52Z",
+      "updatedAt": "2025-07-11T08:30:06Z",
+      "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "baseRefName": "main",
+      "baseRefOid": "95909237963d700ac9b804f7207af3feb2e7969b",
+      "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
+      "headRefName": "review-0707",
+      "headRefOid": "182563194deab9cf57a55209d8dd8161accf19cf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "body": "eKYC.IDA reference is too generic, it should reference ASC so perhaps [eKYC.IDA.ASC]",
+          "createdAt": "2025-07-11T08:30:06Z",
+          "updatedAt": "2025-07-11T08:30:06Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOOIDCrM6zLpu2",
+          "commit": {
+            "abbreviatedOid": "51d66d6"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "review through call",
+          "createdAt": "2025-07-10T15:10:42Z",
+          "updatedAt": "2025-07-10T15:32:42Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "using a specific error code pointing at the authorization server that needs to be contacted an",
+              "createdAt": "2025-07-10T15:10:42Z",
+              "updatedAt": "2025-07-10T15:32:42Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "\"to the to\"",
+              "createdAt": "2025-07-10T15:12:01Z",
+              "updatedAt": "2025-07-10T15:32:42Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "This needs to be updated. Problem is markdown cannot start a list at a number not being 1.",
+              "createdAt": "2025-07-10T15:26:12Z",
+              "updatedAt": "2025-07-10T15:32:42Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "use one space in front of a ## title",
+              "createdAt": "2025-07-10T15:30:48Z",
+              "updatedAt": "2025-07-10T15:32:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6zXTC9",
+          "commit": {
+            "abbreviatedOid": "1825631"
+          },
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "It is not uncommon for resource servers to require additional information like details of **delegation** authorization --> **delegated**",
+          "createdAt": "2025-07-11T08:27:52Z",
+          "updatedAt": "2025-07-11T08:27:52Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOOIDCrM6zXVWL",
+          "commit": {
+            "abbreviatedOid": "1825631"
+          },
+          "author": "yaron-zehavi",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "[I-D.ietf-oauth-v2-1]\r\n\"*** BROKEN REFERENCE ***\".\r\n[I-D.lombardo-oauth-client-extension-claims]\r\n\"*** BROKEN REFERENCE ***\".",
+          "createdAt": "2025-07-11T08:29:21Z",
+          "updatedAt": "2025-07-11T08:29:21Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }

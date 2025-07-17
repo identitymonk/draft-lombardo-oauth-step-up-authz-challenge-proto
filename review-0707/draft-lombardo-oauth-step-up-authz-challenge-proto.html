@@ -1267,7 +1267,7 @@ the access token of the current request does not meet its authorization requirem
                     <p id="section-toc.1-1.11.2.1.2.3.1"><a href="#appendix-A.1.3" class="auto internal xref">A.1.3</a>.  <a href="#name-llm-tool-receives-the-reque" class="internal xref">LLM Tool receives the request</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1.2.4">
-                    <p id="section-toc.1-1.11.2.1.2.4.1"><a href="#appendix-A.1.4" class="auto internal xref">A.1.4</a>.  <a href="#name-llm-tool-obtains-a-set-of-t" class="internal xref">LLM Tool obtains a set of token from Authorization Server protecting the API</a></p>
+                    <p id="section-toc.1-1.11.2.1.2.4.1"><a href="#appendix-A.1.4" class="auto internal xref">A.1.4</a>.  <a href="#name-llm-tool-obtains-a-set-of-t" class="internal xref">LLM Tool obtains a set of tokens from Authorization Server protecting the API</a></p>
 </li>
                 </ul>
 </li>
@@ -1310,7 +1310,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-protocol-overview">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocol-overview" class="section-name selfRef">Protocol Overview</a>
       </h2>
-<p id="section-3-1">The following is an end-to-end sequence of a typical step up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">The following is an end-to-end sequence of a typical step-up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3-2">
 <pre>
 +----------+                                          +--------------+
@@ -1651,7 +1651,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
       <h2 id="name-resource-server-metadata">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-resource-server-metadata" class="section-name selfRef">Resource Server Metadata</a>
       </h2>
-<p id="section-7-1">Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>, the value <code>step_up_authorization_supported</code>. The presence of <code>step_up_authorization_supported</code> in the resource server metadata document signals that the resource server <span class="bcp14">MAY</span> honor the issuance of step-up authorization challenge if its sees fit.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-1">Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>, the value <code>step_up_authorization_supported</code>. The presence of <code>step_up_authorization_supported</code> in the resource server metadata document signals that the resource server <span class="bcp14">MAY</span> honor the issuance of step-up authorization challenge if it sees fit.<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
@@ -1741,7 +1741,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
 <dl class="references">
 <dt id="D-OpenID-AuthZEN">[D-OpenID-AuthZEN]</dt>
         <dd>
-<span class="refAuthor">GAzitt, O., Ed.</span>, <span class="refAuthor">Brossard, D., Ed.</span>, and <span class="refAuthor">A. Tulshibagwale, Ed.</span>, <span class="refTitle">"Authorization API"</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://openid.github.io/authzen/">https://openid.github.io/authzen/</a>&gt;</span>. </dd>
+<span class="refAuthor">Gazitt, O., Ed.</span>, <span class="refAuthor">Brossard, D., Ed.</span>, and <span class="refAuthor">A. Tulshibagwale, Ed.</span>, <span class="refTitle">"Authorization API"</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://openid.github.io/authzen/">https://openid.github.io/authzen/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="eKYC.IDA.ASC">[eKYC.IDA.ASC]</dt>
         <dd>
@@ -2022,13 +2022,13 @@ Content-Type: application/json
 }
 </pre><a href="#appendix-A.1.3-8" class="pilcrow">¶</a>
 </div>
-<p id="appendix-A.1.3-9">LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.<a href="#appendix-A.1.3-9" class="pilcrow">¶</a></p>
+<p id="appendix-A.1.3-9">LLM Agent has learned all necessary endpoints and supported capabilities to obtain an access token for the external tool.<a href="#appendix-A.1.3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="llm-tool-obtains-a-set-of-token-from-authorization-server-protecting-the-api">
+<div id="llm-tool-obtains-a-set-of-tokens-from-authorization-server-protecting-the-api">
 <section id="appendix-A.1.4">
           <h4 id="name-llm-tool-obtains-a-set-of-t">
-<a href="#appendix-A.1.4" class="section-number selfRef">A.1.4. </a><a href="#name-llm-tool-obtains-a-set-of-t" class="section-name selfRef">LLM Tool obtains a set of token from Authorization Server protecting the API</a>
+<a href="#appendix-A.1.4" class="section-number selfRef">A.1.4. </a><a href="#name-llm-tool-obtains-a-set-of-t" class="section-name selfRef">LLM Tool obtains a set of tokens from Authorization Server protecting the API</a>
           </h4>
 <p id="appendix-A.1.4-1">The LLM tool redirects the LLM Agent for an authorization request:<a href="#appendix-A.1.4-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="appendix-A.1.4-2">

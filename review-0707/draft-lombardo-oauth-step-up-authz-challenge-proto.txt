@@ -120,7 +120,7 @@ Table of Contents
        A.1.1.  Preconditions
        A.1.2.  LLM Agent receives a response from the LLM
        A.1.3.  LLM Tool receives the request
-       A.1.4.  LLM Tool obtains a set of token from Authorization
+       A.1.4.  LLM Tool obtains a set of tokens from Authorization
                Server protecting the API
    Acknowledgments
    Authors' Addresses
@@ -178,7 +178,7 @@ Table of Contents
 
 3.  Protocol Overview
 
-   The following is an end-to-end sequence of a typical step up
+   The following is an end-to-end sequence of a typical step-up
    authorization scenario implemented according to this specification.
    The scenario assumes that the client obtained an access token for the
    protected resource before the sequence described below takes place.
@@ -551,7 +551,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
    defined in [RFC9728], the value step_up_authorization_supported.  The
    presence of step_up_authorization_supported in the resource server
    metadata document signals that the resource server MAY honor the
-   issuance of step-up authorization challenge if its sees fit.
+   issuance of step-up authorization challenge if it sees fit.
 
 8.  Security Considerations
 
@@ -617,7 +617,7 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
 10.1.  Normative References
 
    [D-OpenID-AuthZEN]
-              GAzitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
+              Gazitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
               Ed., "Authorization API", 2025,
               <https://openid.github.io/authzen/>.
 
@@ -896,9 +896,9 @@ Content-Type: application/json
 }
 
    LLM Agent has learned all necessary endpoints and supported
-   capabilites to obtain an access token for the external tool.
+   capabilities to obtain an access token for the external tool.
 
-A.1.4.  LLM Tool obtains a set of token from Authorization Server
+A.1.4.  LLM Tool obtains a set of tokens from Authorization Server
         protecting the API
 
    The LLM tool redirects the LLM Agent for an authorization request:

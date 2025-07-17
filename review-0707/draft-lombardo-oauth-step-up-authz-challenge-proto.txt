@@ -262,7 +262,7 @@ Table of Contents
    [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of
    [hl7.fhir.uv.smart-app-launch].
 
-   The validation operations mentioned in steps 2 and 6 imply that the
+   The validation operations mentioned in the steps imply that the
    resource server has a way of evaluating the authorization
    requirements that occurred during the ceremonies that led to the
    issuance of the access token.  In the context of this document, the

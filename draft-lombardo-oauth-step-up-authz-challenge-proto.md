@@ -216,7 +216,7 @@ _Figure 1: Abstract Protocol Flow_
 
 Such protocol flow is coherent with the expectations of [FAPI2.0-Security-Profiles], section 2.1.10.2.1 of [hl7.fhir.uv.smart-app-launch].
 
-The validation operations mentioned in steps 2 and 6 imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
+The validation operations mentioned in the steps imply that the resource server has a way of evaluating the authorization requirements that occurred during the ceremonies that led to the issuance of the access token. In the context of this document, the assessment by the resource server of the specific authorization mechanisms used to obtain a token for the requested resource is called an "authorization state".
 
 This document does not describe how the resource server performs this assessment of the authorization state, whether the access token is a JSON Web Token (JWT) [RFC9068] or is validated via introspection [RFC7662] or whether the resource server is performing this assessment natively or by offloading the assessment to a policy decision point as defined in [D-OpenID-AuthZEN], [XACML] or NIST's ABAC [SP.800-162]. This document rather describes how the resource server tells the client what type of authorization it needs to get from the authorization server for a request.
 

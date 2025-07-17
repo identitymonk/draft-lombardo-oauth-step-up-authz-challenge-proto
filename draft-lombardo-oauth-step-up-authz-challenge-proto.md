@@ -54,7 +54,6 @@ normative:
   RFC6750: # OAuth 2.0 Authorization Framework: Bearer Token Usage
   RFC9068: # JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
   RFC9470: # OAuth 2.0 Step Up Authentication Challenge Protocol
-  RFC9396: # Rich Authorization Request
   D-OpenID-AuthZEN: #AuthZEN
     title: Authorization API
     target: https://openid.github.io/authzen/
@@ -72,7 +71,7 @@ normative:
   RFC8259: #JSON
   RFC7517: # JSON Web Key
   RFC9728: # OAuth 2.0 Protected Resource Metadata
-  eKYC.IDA:
+  eKYC.IDA.ASC:
     title: OpenID Connect Advanced Syntax for Claims (ASC) 1.0
     target: https://openid.bitbucket.io/ekyc/openid-connect-advanced-syntax-for-claims.html
     author:
@@ -81,9 +80,11 @@ normative:
         org: Authlete
 
 informative:
-  RFC7662: # Introspection
+  RFC9396: # Rich Authorization Request
+  RFC9126: # Pushed Authorization Request
+  RFC9101: # JWT-Secured Authorization Request  RFC7662: # Introspection
   RFC9449: # DPoP
-  I-D.ietf-oauth-v2-1: # OAuth 2.1
+  I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
   XACML:
     title: eXtensible Access Control Markup Language (XACML) Version 1.1
     target: https://www.oasis-open.org/committees/xacml/repository/cs-xacml-specification-1.1.pdf
@@ -144,7 +145,7 @@ informative:
 
 --- abstract
 
-It is not uncommon for resource servers to require additional information like details of delegation authorization, or assurance proof of the delegation of authorization mechanism used according to the characteristics of a request. This document introduces a mechanism that resource servers can use to signal to a client that the  data and metadata  associated with
+It is not uncommon for resource servers to require additional information like details of delegation authorization, or assurance proof of the delegated of authorization mechanism used according to the characteristics of a request. This document introduces a mechanism that resource servers can use to signal to a client that the  data and metadata  associated with
 the access token of the current request does not meet its authorization requirements and, further, how to meet them. This document also codifies a taxonomy to guide the client into starting a new request towards the authorization server in order to get issued, if applicable, a new set of tokens matching the requirements.
 
 
@@ -197,14 +198,17 @@ The following is an end-to-end sequence of a typical step up authorization scena
 _Figure 1: Abstract Protocol Flow_
 
 - Case of an initial request bearing an access token:
+
   1. The client requests a protected resource, presenting an access token.
   2. The resource server determines that the circumstances in which the presented access token was obtained offer insufficient authorization details, wrong grant flow, or inadequate client authentication mechanism; it therefore denies the request and returns a challenge describing (using a combination of error code and payload details) what authorization requirements must be met to allow the request. It is possible here for the resource server to rely on the responses from an external policy decision point.
 
 - Case of an initial request not bearing an access token:
+
   1. The client requests a protected resource without presenting an access token.
   2. The resource server returns a specific challenge describing which authorization server needs to be contacted and optionally which additional requirements must be met to allow the request.
 
 - In any case, afterwards:
+
   3. The client redirects the user agent to the authorization server with an authorization request and includes, if presented by the resource server in the previous step, the authorization parameters, details, and extensions indicated by the resource server.
   4. The client initiates the right grant flow type with the appropriate authorization details with the authorization server based on the resource server's guidance. The authorization server evaluates the request and ensures its requirements are met. If so, the authorization server will issue a new access token that contains or references information about the elements requested.
   5. The client repeats the request from step 1, presenting the newly obtained access token.
@@ -272,7 +276,7 @@ The `context` MAY contain the following information
 : _OPTIONAL_ - a human readable String that summarize the details required
 
 `details`:
-: _OPTIONAL_ - a JSON structure representing the expected parameters to be passed by the client to the authorization server if a new authorization request is attempted. This JSON structure MUST be formatted using the syntax defined by [eKYC.IDA]
+: _OPTIONAL_ - a JSON structure representing the expected parameters to be passed by the client to the authorization server if a new authorization request is attempted. This JSON structure MUST be formatted using the syntax defined by [eKYC.IDA.ASC]
 
 ## Non Normative Examples Of Step-Up Authorization Challenge
 

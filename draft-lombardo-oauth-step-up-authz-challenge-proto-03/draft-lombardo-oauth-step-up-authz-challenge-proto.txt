@@ -695,6 +695,10 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               <https://modelcontextprotocol.io/specification/2025-06-18/
               basic>.
 
+   [RFC7662]  Richer, J., Ed., "OAuth 2.0 Token Introspection",
+              RFC 7662, DOI 10.17487/RFC7662, October 2015,
+              <https://www.rfc-editor.org/rfc/rfc7662>.
+
    [RFC9101]  Sakimura, N., Bradley, J., and M. Jones, "The OAuth 2.0
               Authorization Framework: JWT-Secured Authorization Request
               (JAR)", RFC 9101, DOI 10.17487/RFC9101, August 2021,

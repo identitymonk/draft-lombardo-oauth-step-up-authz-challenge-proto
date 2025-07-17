@@ -82,7 +82,8 @@ normative:
 informative:
   RFC9396: # Rich Authorization Request
   RFC9126: # Pushed Authorization Request
-  RFC9101: # JWT-Secured Authorization Request  RFC7662: # Introspection
+  RFC9101: # JWT-Secured Authorization Request
+  RFC7662: # Introspection
   RFC9449: # DPoP
   I-D.lombardo-oauth-client-extension-claims: # OAuth2 Client extensions claims
   XACML:

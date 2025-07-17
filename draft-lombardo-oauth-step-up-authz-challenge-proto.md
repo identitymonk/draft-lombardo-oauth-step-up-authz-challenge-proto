@@ -58,10 +58,10 @@ normative:
     title: Authorization API
     target: https://openid.github.io/authzen/
     author:
-    - name: Omri GAzitt
+    - name: Omri Gazitt
       role: editor
       org: Asserto
-    - name: DAvid Brossard
+    - name: David Brossard
       role: editor
       org: Axiomatics
     - name: Atul Tulshibagwale
@@ -167,7 +167,7 @@ This specification uses the terms "access token", "authorization server", "autho
 
 # Protocol Overview
 
-The following is an end-to-end sequence of a typical step up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.
+The following is an end-to-end sequence of a typical step-up authorization scenario implemented according to this specification. The scenario assumes that the client obtained an access token for the protected resource before the sequence described below takes place.
 
     +----------+                                          +--------------+
     |          |                                          |              |
@@ -393,7 +393,7 @@ This specification facilitates the communication of requirements from a resource
 
 # Resource Server Metadata
 
-Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in [RFC9728], the value `step_up_authorization_supported`. The presence of `step_up_authorization_supported` in the resource server metadata document signals that the resource server MAY honor the issuance of step-up authorization challenge if its sees fit.
+Resource servers can advertise their support of this specification by including in their OAuth protected resource metadata document, as defined in [RFC9728], the value `step_up_authorization_supported`. The presence of `step_up_authorization_supported` in the resource server metadata document signals that the resource server MAY honor the issuance of step-up authorization challenge if it sees fit.
 
 # Security Considerations
 
@@ -579,9 +579,9 @@ LLM Agent discovers the Authorization Server configuration per [RFC9728].
       ]
     }
 
-LLM Agent has learned all necessary endpoints and supported capabilites to obtain an access token for the external tool.
+LLM Agent has learned all necessary endpoints and supported capabilities to obtain an access token for the external tool.
 
-### LLM Tool obtains a set of token from Authorization Server protecting the API
+### LLM Tool obtains a set of tokens from Authorization Server protecting the API
 
 The LLM tool redirects the LLM Agent for an authorization request:
 

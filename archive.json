@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-13T01:53:20.106297+00:00",
+  "timestamp": "2025-07-17T01:46:56.714760+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -445,6 +445,22 @@
           "updatedAt": "2025-07-03T21:07:12Z"
         }
       ]
+    },
+    {
+      "number": 18,
+      "id": "I_kwDOOIDCrM7A9KpA",
+      "title": "Discuss alternatives to `body_instructions`",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/18",
+      "state": "OPEN",
+      "author": "max-stytch",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Hello! Nice to meet. I was super excited to find this I-D - this is definitely a problem I am running into while attempting to apply FGA concepts to the MCP ecosystem. MCP is currently making use of OAuth scopes and OAuth resource URLs, but doesn't have a mechanism to bring in RAR `authorization_details` yet. MCP Clients and MCP Servers often have no prior knowledge of each other. This means MCP clients do not know the proprietary authz scheme employed by the MCP Server, so it is impossible for MCP Clients to construct the `authorization_details` object themselves. We need a mechanism for the MCP Server to instruct the MCP client what parameters to use - this I-D solves that!\n\n----\n\nOne hesitation I have - the use of `body_instructions` means that this scheme cannot be used with any endpoint that already returns a response body. I would be cautious assuming that the response body is empty for all failed requests. RFC6750 does not require the body to be empty. It is very common for the response body to contain a structured application-level error. \n\nFor example, MCP states that the response body should be a JSON RPC message with a suitable JSON RPC error code:\n> If the input is a JSON-RPC request, the server MUST either return Content-Type: text/event-stream, to initiate an SSE stream, or Content-Type: application/json, to return one JSON object. The client MUST support both these cases.\n\nOne possible solution could be to encode the `body_instructions` object as base64url encoded JSON (not a JWT - no signing necessary) within the response header itself - e.g.\n```\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", \n    error_description=\"The authorization level is not met\",\n    resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\",\n    authzen_response=\"eyJ...\"\n```\n\nField renamed to `authzen_response` in the above example, exact field name TBD.\n\nOAuth Access Token JWTs have a long history of being included in request headers as base64url encoded JSON, so there is substantial prior art to go off of. RAR `authorization_details` can get quite large, but often end up directly encoded in JWT access tokens anyway.\n\nPlease let me know your opinions - or if there are other considerations I am not aware of that make this less of an issue. ",
+      "createdAt": "2025-07-16T20:23:42Z",
+      "updatedAt": "2025-07-16T20:23:42Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [

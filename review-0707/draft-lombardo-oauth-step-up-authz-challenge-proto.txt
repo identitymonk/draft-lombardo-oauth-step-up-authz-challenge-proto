@@ -5,12 +5,12 @@
 Web Authorization Protocol                                   J. Lombardo
 Internet-Draft                                                       AWS
 Intended status: Informational                                A. Babeanu
-Expires: 11 January 2026                                        IndyKite
+Expires: 18 January 2026                                        IndyKite
                                                                Y. Zehavi
                                            Raiffeisen Bank International
                                                              G. Fletcher
                                                       Practical Identity
-                                                            10 July 2025
+                                                            17 July 2025
 
 
             OAuth 2.0 step-up authorization challenge proto
@@ -20,7 +20,7 @@ Abstract
 
    It is not uncommon for resource servers to require additional
    information like details of delegation authorization, or assurance
-   proof of the delegation of authorization mechanism used according to
+   proof of the delegated of authorization mechanism used according to
    the characteristics of a request.  This document introduces a
    mechanism that resource servers can use to signal to a client that
    the data and metadata associated with the access token of the current
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 January 2026.
+   This Internet-Draft will expire on 18 January 2026.
 
 Copyright Notice
 
@@ -406,7 +406,7 @@ Table of Contents
    details:  _OPTIONAL_ - a JSON structure representing the expected
       parameters to be passed by the client to the authorization server
       if a new authorization request is attempted.  This JSON structure
-      MUST be formatted using the syntax defined by [eKYC.IDA]
+      MUST be formatted using the syntax defined by [eKYC.IDA.ASC]
 
 4.5.  Non Normative Examples Of Step-Up Authorization Challenge
 
@@ -516,8 +516,8 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
   }
 }
 
-      Note: gty, ccr, and cmr are claims defined by [I-D.lombardo-oauth-
-      client-extension-claims]
+      Note: gty, ccr, and cmr are claims defined by
+      [I-D.lombardo-oauth-client-extension-claims]
 
 5.  Client Action Following A Step-Up Authorization Challenge
 
@@ -621,7 +621,8 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               Ed., "Authorization API", 2025,
               <https://openid.github.io/authzen/>.
 
-   [eKYC.IDA] Fett, D. D., Ed., "OpenID Connect Advanced Syntax for
+   [eKYC.IDA.ASC]
+              Fett, D. D., Ed., "OpenID Connect Advanced Syntax for
               Claims (ASC) 1.0", n.d.,
               <https://openid.bitbucket.io/ekyc/openid-connect-advanced-
               syntax-for-claims.html>.
@@ -661,11 +662,6 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               Access Tokens", RFC 9068, DOI 10.17487/RFC9068, October
               2021, <https://www.rfc-editor.org/rfc/rfc9068>.
 
-   [RFC9396]  Lodderstedt, T., Richer, J., and B. Campbell, "OAuth 2.0
-              Rich Authorization Requests", RFC 9396,
-              DOI 10.17487/RFC9396, May 2023,
-              <https://www.rfc-editor.org/rfc/rfc9396>.
-
    [RFC9470]  Bertocci, V. and B. Campbell, "OAuth 2.0 Step Up
               Authentication Challenge Protocol", RFC 9470,
               DOI 10.17487/RFC9470, September 2023,
@@ -688,20 +684,31 @@ WWW-Authenticate: Bearer error="insufficient_authorization", error_description="
               <https://www.hl7.org/fhir/smart-app-launch/app-
               launch.html#obtain-authorization-code>.
 
-   [I-D.ietf-oauth-v2-1]
-              Hardt, D., Parecki, A., and T. Lodderstedt, "The OAuth 2.1
-              Authorization Framework", Work in Progress, Internet-
-              Draft, draft-ietf-oauth-v2-1-13, 28 May 2025,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              v2-1-13>.
+   [I-D.lombardo-oauth-client-extension-claims]
+              Lombardo, J. and A. Babeanu, "OAuth 2.0 client extension
+              claims", Work in Progress, Internet-Draft, draft-lombardo-
+              oauth-client-extension-claims-02, 30 June 2025,
+              <https://datatracker.ietf.org/doc/html/draft-lombardo-
+              oauth-client-extension-claims-02>.
 
    [MCP]      "Model Context Protocol", n.d.,
               <https://modelcontextprotocol.io/specification/2025-06-18/
               basic>.
 
-   [RFC7662]  Richer, J., Ed., "OAuth 2.0 Token Introspection",
-              RFC 7662, DOI 10.17487/RFC7662, October 2015,
-              <https://www.rfc-editor.org/rfc/rfc7662>.
+   [RFC9101]  Sakimura, N., Bradley, J., and M. Jones, "The OAuth 2.0
+              Authorization Framework: JWT-Secured Authorization Request
+              (JAR)", RFC 9101, DOI 10.17487/RFC9101, August 2021,
+              <https://www.rfc-editor.org/rfc/rfc9101>.
+
+   [RFC9126]  Lodderstedt, T., Campbell, B., Sakimura, N., Tonge, D.,
+              and F. Skokan, "OAuth 2.0 Pushed Authorization Requests",
+              RFC 9126, DOI 10.17487/RFC9126, September 2021,
+              <https://www.rfc-editor.org/rfc/rfc9126>.
+
+   [RFC9396]  Lodderstedt, T., Richer, J., and B. Campbell, "OAuth 2.0
+              Rich Authorization Requests", RFC 9396,
+              DOI 10.17487/RFC9396, May 2023,
+              <https://www.rfc-editor.org/rfc/rfc9396>.
 
    [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
               Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of

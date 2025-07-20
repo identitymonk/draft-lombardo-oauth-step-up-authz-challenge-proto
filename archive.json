@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-07-17T01:46:56.714760+00:00",
+  "timestamp": "2025-07-20T01:54:49.202910+00:00",
   "repo": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
   "labels": [
     {
@@ -158,16 +158,24 @@
       "id": "I_kwDOOIDCrM64zbrW",
       "title": "Support for `method` of type `urn:ietf:params:oauth:grant-type:token-exchange`",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/7",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "identitymonk",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "As partially discussed in #2 and as part of all the discussions on Agent as actor in the process of asking a step-up of the authorization, we could add from the beginning the support of the OAuth2 Token Exchange flow.\n\nThis could ease the path for https://datatracker.ietf.org/doc/draft-oauth-ai-agents-on-behalf-of-user/",
       "createdAt": "2025-05-29T14:13:47Z",
-      "updatedAt": "2025-05-29T14:13:47Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2025-07-17T03:25:41Z",
+      "closedAt": "2025-07-17T03:25:40Z",
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "We are no longer guiding the client on how to do the next authorization request with a `method` value",
+          "createdAt": "2025-07-17T03:25:40Z",
+          "updatedAt": "2025-07-17T03:25:40Z"
+        }
+      ]
     },
     {
       "number": 8,
@@ -458,9 +466,62 @@
       "labels": [],
       "body": "Hello! Nice to meet. I was super excited to find this I-D - this is definitely a problem I am running into while attempting to apply FGA concepts to the MCP ecosystem. MCP is currently making use of OAuth scopes and OAuth resource URLs, but doesn't have a mechanism to bring in RAR `authorization_details` yet. MCP Clients and MCP Servers often have no prior knowledge of each other. This means MCP clients do not know the proprietary authz scheme employed by the MCP Server, so it is impossible for MCP Clients to construct the `authorization_details` object themselves. We need a mechanism for the MCP Server to instruct the MCP client what parameters to use - this I-D solves that!\n\n----\n\nOne hesitation I have - the use of `body_instructions` means that this scheme cannot be used with any endpoint that already returns a response body. I would be cautious assuming that the response body is empty for all failed requests. RFC6750 does not require the body to be empty. It is very common for the response body to contain a structured application-level error. \n\nFor example, MCP states that the response body should be a JSON RPC message with a suitable JSON RPC error code:\n> If the input is a JSON-RPC request, the server MUST either return Content-Type: text/event-stream, to initiate an SSE stream, or Content-Type: application/json, to return one JSON object. The client MUST support both these cases.\n\nOne possible solution could be to encode the `body_instructions` object as base64url encoded JSON (not a JWT - no signing necessary) within the response header itself - e.g.\n```\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", \n    error_description=\"The authorization level is not met\",\n    resource_metadata_uri=\"https://www.example.com/.well-known/oauth-protected-resource\",\n    authzen_response=\"eyJ...\"\n```\n\nField renamed to `authzen_response` in the above example, exact field name TBD.\n\nOAuth Access Token JWTs have a long history of being included in request headers as base64url encoded JSON, so there is substantial prior art to go off of. RAR `authorization_details` can get quite large, but often end up directly encoded in JWT access tokens anyway.\n\nPlease let me know your opinions - or if there are other considerations I am not aware of that make this less of an issue. ",
       "createdAt": "2025-07-16T20:23:42Z",
-      "updatedAt": "2025-07-16T20:23:42Z",
+      "updatedAt": "2025-07-17T03:20:26Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "Very good analysis @max-stytch let me come back to you. The initial stance was the size of the potential WWW-Authenticate header",
+          "createdAt": "2025-07-17T03:20:26Z",
+          "updatedAt": "2025-07-17T03:20:26Z"
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "id": "I_kwDOOIDCrM7BHYyB",
+      "title": "Incompatible `response_body` format",
+      "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/issues/19",
+      "state": "OPEN",
+      "author": "baboulebou",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 4.4.2.1 of the spec draft currently states the following:\n\n> \"If a body is attached to the to the response from the resource server, it MUST be formatted as an AuthZEN [[D-OpenID-AuthZEN](https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge-proto/draft-lombardo-oauth-step-up-authz-challenge-proto.html#D-OpenID-AuthZEN)] response\" \n\nIt then proceeds to add that part of this response body, there is an optional `details` element, defined as follows:\n\n> \"OPTIONAL - a JSON structure representing the expected parameters to be passed by the client to the authorization server if a new authorization request is attempted. This JSON structure MUST be formatted using the syntax defined by [[eKYC.IDA.ASC](https://identitymonk.github.io/draft-lombardo-oauth-step-up-authz-challenge-proto/draft-lombardo-oauth-step-up-authz-challenge-proto.html#eKYC.IDA.ASC)]\"\n\nNevertheless although possible, this format is not at all normative for AuthZEN. Therefore if we say that the response body must be AuthZEN compliant, using ASC should be optional, as that is just a possible way of expressing the details via an AuthZEN response.\n\nNote also that AuthZEN responses are currently being modified. I would remove mention of ASC here, and maybe instead bring it up with AuthZEN group.",
+      "createdAt": "2025-07-17T15:07:05Z",
+      "updatedAt": "2025-07-18T14:36:11Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "is this AuthZEN Compliant as an Answer  @baboulebou \n\n```\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", \nerror_description=\"The authorization level is not met\",  body_instructions=true\n\n{\n  \"decision\": false,\n  \"context\": {\n  }\n}\n```",
+          "createdAt": "2025-07-17T15:07:55Z",
+          "updatedAt": "2025-07-17T15:07:55Z"
+        },
+        {
+          "author": "baboulebou",
+          "authorAssociation": "COLLABORATOR",
+          "body": "yes, my issue is making ASC Mandatory in this spec here. instead, leave it to \u201cAuthZEN\u201d response, and let\u2019s bring-up ASC with the AuthZEN group",
+          "createdAt": "2025-07-17T15:08:25Z",
+          "updatedAt": "2025-07-17T15:08:59Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "eKYC ASC is mandatory for the formatting of an optional claim, `details`, which is specific to this draft. AuthZEN WG has no oversight on this as long as we respect the only constraint they set: that the `details` claim and its value created in the `context` claim of the AuthZEN response are JSON compliant.\n\n[AuthZEN section 5.4. Context](https://openid.github.io/authzen/#name-context)](https://openid.github.io/authzen/#section-5.4)\n> The Context object is a set of attributes that represent environmental or contextual data about the request such as time of day. It is a JSON ([[RFC8259](https://openid.github.io/authzen/#RFC8259)]) object.\n\nAs presented in the examples of this draft, `context` and the underlying optional claim `details` in eKYC ASC format are JSON compliant:\n\n```\nHTTP/1.1 403 Forbidden\nWWW-Authenticate: Bearer error=\"insufficient_authorization\", \nerror_description=\"The authorization level is not met\",  body_instructions=true\n\n{\n  \"decision\": false,\n  \"context\": {\n      \"error_msg\": \"Missing authorization_details\",\n      \"details\": [{\n          \"loc\": \"/authorization_details\",\n          \"method\": \"simple\",\n          \"value\": [{\n              \"type\": \"payment_initiation\",\n              \"actions\": [\n                  \"initiate\",\n                  \"status\",\n                  \"cancel\"\n               ],\n               \"locations\": [\"https://example.com/payments\"],\n               \"instructedAmount\": {\n               \"currency\": \"EUR\",\n               \"amount\": \"123.50\"\n               },\n          \"creditorName\": \"Merchant A\",\n          \"creditorAccount\": {\n            \"iban\": \"DE02100100109307118603\"\n          },\n          \"remittanceInformationUnstructured\": \"Ref Number Merchant\"\n      }]\n    }]\n  }\n}\n```\n\n",
+          "createdAt": "2025-07-17T15:27:07Z",
+          "updatedAt": "2025-07-17T15:27:07Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "OWNER",
+          "body": "This point will be discussed at IETF 123 along issue #18 ",
+          "createdAt": "2025-07-18T14:36:11Z",
+          "updatedAt": "2025-07-18T14:36:11Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -773,7 +834,7 @@
       "labels": [],
       "body": "This PR is taking into account all the discussions of the meeting of June 26th as long as the follow-up discussions with Yaron:\r\n\r\n- numbering\r\n- formatting of http code\r\n- merging of error code\r\n- removal of JAR\r\n- formatting of WWW-Authenticate\r\n- Formating of AuthZEN response with ASC taxonomy\r\n- Adding of OAuth2 Protected Resource capability",
       "createdAt": "2025-06-28T01:18:51Z",
-      "updatedAt": "2025-06-28T01:21:20Z",
+      "updatedAt": "2025-07-17T03:58:19Z",
       "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "baseRefName": "main",
       "baseRefOid": "7dd4ca3cafbf1072619fc73a2e4d635fc363a585",
@@ -850,24 +911,26 @@
       "id": "PR_kwDOOIDCrM6eU1Te",
       "title": "incorporating feedback from George and Yaron",
       "url": "https://github.com/identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto/pull/17",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "identitymonk",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Incorporating feedback from #14 #15",
       "createdAt": "2025-07-10T14:55:52Z",
-      "updatedAt": "2025-07-11T08:30:06Z",
+      "updatedAt": "2025-07-17T03:57:59Z",
       "baseRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "baseRefName": "main",
-      "baseRefOid": "95909237963d700ac9b804f7207af3feb2e7969b",
+      "baseRefOid": "8b425579c523f28e66bf1cb941191b9f638fcf38",
       "headRepository": "identitymonk/draft-lombardo-oauth-step-up-authz-challenge-proto",
       "headRefName": "review-0707",
-      "headRefOid": "182563194deab9cf57a55209d8dd8161accf19cf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "974912f39f90a101aaf314908bcae0bcced301a6",
+      "closedAt": "2025-07-17T03:57:56Z",
+      "mergedAt": "2025-07-17T03:57:56Z",
+      "mergedBy": "identitymonk",
+      "mergeCommit": {
+        "oid": "dd0b3ffd5739c68807f3d29f50e7f38a36c99080"
+      },
       "comments": [
         {
           "author": "yaron-zehavi",
